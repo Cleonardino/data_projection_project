@@ -1,0 +1,119 @@
+\documentclass{rapport}
+
+\usepackage{subcaption}
+\usepackage{blindtext}
+\usepackage{lipsum}
+\usepackage{enumitem}
+\usepackage{setspace}
+\usepackage{eurosym}
+\usepackage{adjustbox}
+\usepackage{changepage}
+\usepackage{booktabs}
+
+% \usepackage{breakurl}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{minted}
+\usepackage{fontawesome}
+
+\usepackage{booktabs}
+\usepackage[table]{xcolor}
+
+\definecolor{LightGray}{gray}{0.95}
+\definecolor{pale_red}{HTML}{F4A7A3}
+\definecolor{pale_green}{HTML}{E8F5DC}
+\definecolor{pale_violet}{HTML}{E7D8F5}
+\definecolor{pale_yellow}{HTML}{F8E68C}
+\definecolor{pale_blue}{HTML}{97DAD9}
+
+\usepackage{tikz}
+\newcommand{\colorboxsquare}[1]{\tikz \fill[#1] (0,0) rectangle (0.3,0.3);}
+
+\usepackage{csquotes}
+\usepackage{biblatex}
+\addbibresource{biblio.bib}
+\setlength{\bibitemsep}{\itemsep}
+\setlength{\bibparsep}{\parsep}
+
+\newcommand{\ttt}[1]{\texttt{#1}}
+
+\newcommand{\myparagraph}[1]{%
+  \paragraph{#1} \mbox{} \\
+  \vspace{-1em} % Ajusté à mon goût
+}
+
+\setlist[itemize,1]{label={\textbullet}}
+\setlist[itemize,2]{label={$\blacktriangleright$}}
+
+
+\title{Rapport de protection des données} % Titre du fichier
+
+\onehalfspacing
+
+\begin{document}
+
+
+%----------- Informations du rapport ---------
+
+\setlogo{images/LogoTPS.png} % Définit le logo
+\setunif{Télécom Physique Strasbourg}
+\setsujet{Rapport de protection des données}
+\settitre{Analyse de données cyberphysiques sur la distribution d'eau}
+\seteleves{Clément \textsc{Desberg}\\Nathan \textsc{Cerisara}\\Ysée \textsc{Jacquet}\\Lucas \textsc{Levy}} %Nom des élèves
+
+%----------- Initialisation -------------------
+        
+% 1️⃣ Crée la page de garde SANS marges fancy
+\fairepagedegarde
+
+% 2️⃣ Maintenant on applique les marges/fancyhdr pour le reste du document
+\fairemarges
+
+\newpage
+\tabledematieres %Créer la table de matières
+
+% Table des figures
+\listoffigures
+
+\section*{Abréviations employées}
+
+\begin{itemize}
+    \item \textbf{CNN} : Convolutional Neural Network
+\end{itemize}
+
+% % Table des tableaux (si nécessaire)
+% \listoftables
+
+%------------ Corps du rapport ----------------
+
+\newpage
+\pagenumbering{arabic} % réactiver la numérotation
+\setcounter{page}{1}  % réinitialiser le compteur de pages
+
+\section*{Introduction} 
+
+TO COMPLETE
+
+\section{Données}
+
+\subsection{Visualisation des données}
+
+\subsubsection{Présentation générale des données}
+
+\subsubsection{Analyse des données}
+
+\subsection{Prétraitement}
+
+\section{Application des algorithmes}
+
+\section{Évaluation}
+
+\section*{Conclusion}
+
+\newpage
+
+\printbibliography[heading=bibintoc, title={Références}]
+\addcontentsline{toc}{section}{Références}
+
+\end{document}
