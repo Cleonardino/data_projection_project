@@ -1133,134 +1133,157 @@ def load_ml_ready_data(
     cache_filename = f"{dataset_type}_{nrows_str}_{random_state}_{cache_hash}.pkl"
     cache_path = Path(cache_dir) / cache_filename
 
+    result = None
+
     # Try to load from cache
     if use_cache and cache_path.exists():
         if show_progress:
             print(f"Loading from cache: {cache_path}")
         with open(cache_path, "rb") as f:
-            return pickle.load(f)
+            result = pickle.load(f)
 
-    # Progress wrapper for showing steps
-    def progress_step(desc: str, total: int = 1):
-        if show_progress:
-            return tqdm(range(total), desc=desc, leave=False)
-        return range(total)
+    if result is None:
+        # Progress wrapper for showing steps
+        def progress_step(desc: str, total: int = 1):
+            if show_progress:
+                return tqdm(range(total), desc=desc, leave=False)
+            return range(total)
 
-    config = DataConfig()
+        config = DataConfig()
 
-    # Step 1: Load raw data
-    for _ in progress_step("Loading raw data"):
-        if dataset_type == "physical":
-            loader = PhysicalDataLoader(config)
-            df: pd.DataFrame = loader.load(datasets=datasets)
-            label_col: str = "Label"
-            exclude_cols: set[str] = {"Time", "Label", "Label_n", "Lable_n", "source_file"}
-        else:
-            loader_net = NetworkDataLoader(config)
-            df = loader_net.load(datasets=datasets, nrows=nrows)
-            label_col = "label"
-            exclude_cols = {"Time", "label", "label_n", "source_file",
-                            "mac_s", "mac_d", "ip_s", "ip_d", "proto",
-                            "flags", "modbus_fn", "modbus_response"}
+        # Step 1: Load raw data
+        for _ in progress_step("Loading raw data"):
+            if dataset_type == "physical":
+                loader = PhysicalDataLoader(config)
+                df: pd.DataFrame = loader.load(datasets=datasets)
+                label_col: str = "Label"
+                exclude_cols: set[str] = {"Time", "Label", "Label_n", "Lable_n", "source_file"}
+            else:
+                loader_net = NetworkDataLoader(config)
+                df = loader_net.load(datasets=datasets, nrows=nrows)
+                label_col = "label"
+                exclude_cols = {"Time", "label", "label_n", "source_file",
+                                "mac_s", "mac_d", "ip_s", "ip_d", "proto",
+                                "flags", "modbus_fn", "modbus_response"}
 
-    # Step 2: Sample and clean
-    for _ in progress_step("Sampling and cleaning data"):
-        if n_samples is not None and len(df) > n_samples:
-            df = df.sample(n=n_samples, random_state=random_state).reset_index(drop=True)
-        df = df.dropna(subset=[label_col]).reset_index(drop=True)
+        # Step 2: Sample and clean
+        for _ in progress_step("Sampling and cleaning data"):
+            if n_samples is not None and len(df) > n_samples:
+                df = df.sample(n=n_samples, random_state=random_state).reset_index(drop=True)
+            df = df.dropna(subset=[label_col]).reset_index(drop=True)
 
-    # Step 3: Extract features
-    for _ in progress_step("Extracting features"):
-        feature_cols: list[str] = [
-            c for c in df.columns
-            if c not in exclude_cols and df[c].dtype in [np.int64, np.float64, np.int32, np.float32]
-        ]
-        X: pd.DataFrame = df[feature_cols].copy()
-        y: pd.Series = df[label_col].copy()
-        X = X.fillna(0)
+        # Step 3: Extract features
+        for _ in progress_step("Extracting features"):
+            feature_cols: list[str] = [
+                c for c in df.columns
+                if c not in exclude_cols and df[c].dtype in [np.int64, np.float64, np.int32, np.float32]
+            ]
+            X: pd.DataFrame = df[feature_cols].copy()
+            y: pd.Series = df[label_col].copy()
+            X = X.fillna(0)
 
-    # Step 4: Encode labels
-    for _ in progress_step("Encoding labels"):
-        label_encoder = LabelEncoder()
-        y_encoded: np.ndarray = label_encoder.fit_transform(y)
-        class_names: list[str] = label_encoder.classes_.tolist()
-        n_classes: int = len(class_names)
-        X_arr: np.ndarray = X.values.astype(np.float64)
+        # Step 4: Encode labels
+        for _ in progress_step("Encoding labels"):
+            label_encoder = LabelEncoder()
+            y_encoded: np.ndarray = label_encoder.fit_transform(y)
+            class_names: list[str] = label_encoder.classes_.tolist()
+            n_classes: int = len(class_names)
+            X_arr: np.ndarray = X.values.astype(np.float64)
 
-    # Step 5: Stratified split
-    for _ in progress_step("Stratified train/val/test split"):
-        test_size_relative: float = test_ratio
-        val_size_relative: float = val_ratio / (train_ratio + val_ratio)
+        # Step 5: Stratified split
+        for _ in progress_step("Stratified train/val/test split"):
+            test_size_relative: float = test_ratio
+            val_size_relative: float = val_ratio / (train_ratio + val_ratio)
 
-        X_trainval, X_test, y_trainval, y_test = train_test_split(
-            X_arr, y_encoded,
-            test_size=test_size_relative,
-            random_state=random_state,
-            stratify=y_encoded,
-        )
-
-        X_train, X_val, y_train, y_val = train_test_split(
-            X_trainval, y_trainval,
-            test_size=val_size_relative,
-            random_state=random_state,
-            stratify=y_trainval,
-        )
-
-    # Step 6: Apply balancing
-    for _ in progress_step(f"Applying balancing ({balancing})"):
-        n_unique_classes: int = len(np.unique(y_train))
-        if balancing != "none" and n_unique_classes > 1:
-            balance_func = {
-                "oversampling_copy": BalancingStrategy.oversampling_copy,
-                "oversampling_augmentation": lambda X, y, rs: BalancingStrategy.oversampling_augmentation(
-                    X, y, noise_std=noise_std, random_state=rs
-                ),
-                "undersampling_standard": BalancingStrategy.undersampling_standard,
-                "undersampling_easy_data": BalancingStrategy.undersampling_easy_data,
-                "smote": BalancingStrategy.smote,
-            }
-
-            if balancing in balance_func:
-                X_train, y_train = balance_func[balancing](X_train, y_train, random_state)
-        elif balancing != "none" and n_unique_classes <= 1:
-            import warnings
-            warnings.warn(
-                f"Balancing strategy '{balancing}' skipped: only {n_unique_classes} class(es) in training data. "
-                "Increase n_samples or nrows_per_file to include more classes."
+            X_trainval, X_test, y_trainval, y_test = train_test_split(
+                X_arr, y_encoded,
+                test_size=test_size_relative,
+                random_state=random_state,
+                stratify=y_encoded,
             )
 
-    # Step 7: Normalize
-    for _ in progress_step("Normalizing features"):
-        scaler: StandardScaler | None = None
-        if normalize:
-            scaler = StandardScaler()
-            X_train = scaler.fit_transform(X_train)
-            X_val = scaler.transform(X_val)
-            X_test = scaler.transform(X_test)
+            X_train, X_val, y_train, y_val = train_test_split(
+                X_trainval, y_trainval,
+                test_size=val_size_relative,
+                random_state=random_state,
+                stratify=y_trainval,
+            )
 
-    # Create result
-    result = MLDataset(
-        X_train=X_train,
-        X_val=X_val,
-        X_test=X_test,
-        y_train=y_train,
-        y_val=y_val,
-        y_test=y_test,
-        feature_names=feature_cols,
-        label_encoder=label_encoder,
-        scaler=scaler,
-        class_names=class_names,
-        n_classes=n_classes,
-    )
+        # Step 6: Apply balancing
+        for _ in progress_step(f"Applying balancing ({balancing})"):
+            n_unique_classes: int = len(np.unique(y_train))
+            if balancing != "none" and n_unique_classes > 1:
+                balance_func = {
+                    "oversampling_copy": BalancingStrategy.oversampling_copy,
+                    "oversampling_augmentation": lambda X, y, rs: BalancingStrategy.oversampling_augmentation(
+                        X, y, noise_std=noise_std, random_state=rs
+                    ),
+                    "undersampling_standard": BalancingStrategy.undersampling_standard,
+                    "undersampling_easy_data": BalancingStrategy.undersampling_easy_data,
+                    "smote": BalancingStrategy.smote,
+                }
 
-    # Step 8: Cache result
-    if use_cache:
-        for _ in progress_step("Caching processed data"):
-            cache_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(cache_path, "wb") as f:
-                pickle.dump(result, f)
-            if show_progress:
-                print(f"Cached to: {cache_path}")
+                if balancing in balance_func:
+                    X_train, y_train = balance_func[balancing](X_train, y_train, random_state)
+            elif balancing != "none" and n_unique_classes <= 1:
+                import warnings
+                warnings.warn(
+                    f"Balancing strategy '{balancing}' skipped: only {n_unique_classes} class(es) in training data. "
+                    "Increase n_samples or nrows_per_file to include more classes."
+                )
+
+        # Step 7: Normalize
+        for _ in progress_step("Normalizing features"):
+            scaler: StandardScaler | None = None
+            if normalize:
+                scaler = StandardScaler()
+                X_train = scaler.fit_transform(X_train)
+                X_val = scaler.transform(X_val)
+                X_test = scaler.transform(X_test)
+
+        # Create result
+        result = MLDataset(
+            X_train=X_train,
+            X_val=X_val,
+            X_test=X_test,
+            y_train=y_train,
+            y_val=y_val,
+            y_test=y_test,
+            feature_names=feature_cols,
+            label_encoder=label_encoder,
+            scaler=scaler,
+            class_names=class_names,
+            n_classes=n_classes,
+        )
+
+        # Step 8: Cache result
+        if use_cache:
+            for _ in progress_step("Caching processed data"):
+                cache_path.parent.mkdir(parents=True, exist_ok=True)
+                with open(cache_path, "wb") as f:
+                    pickle.dump(result, f)
+                if show_progress:
+                    print(f"Cached to: {cache_path}")
+
+    # Print dataset statistics
+    if show_progress:
+        print("\nDataset Split Statistics:")
+        print("-" * 60)
+        splits = [
+            ("Train", result.y_train),
+            ("Val", result.y_val),
+            ("Test", result.y_test)
+        ]
+
+        for name, y_split in splits:
+            total = len(y_split)
+            print(f"{name} Set ({total} samples):")
+            unique, counts = np.unique(y_split, return_counts=True)
+            for label_idx, count in zip(unique, counts):
+                 label_name = result.class_names[label_idx]
+                 print(f"  - {label_name:<20}: {count:6d} ({count/total:.1%})")
+            print()
+        print("-" * 60)
 
     return result
 
