@@ -18,6 +18,15 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
 
+try:
+    from tqdm import tqdm
+except ImportError:
+    # Fallback if tqdm not installed
+    def tqdm(iterable, **kwargs):
+        return iterable
+import pickle
+import hashlib
+
 
 # =============================================================================
 # Configuration
@@ -1052,17 +1061,22 @@ def load_ml_ready_data(
     noise_std: float = 0.1,
     datasets: list[str] | None = None,
     nrows: int | None = None,
+    use_cache: bool = True,
+    cache_dir: str | Path = "cached_datasets",
+    show_progress: bool = True,
 ) -> MLDataset:
     """
     Load fully processed data ready for machine learning.
 
     Performs complete data pipeline:
-    1. Load raw data from CSV files
-    2. Clean and preprocess (handle missing values, encode labels)
-    3. Split into train/val/test sets (stratified)
-    4. Apply optional balancing strategy to training set only
-    5. Normalize features (optional)
-    6. Return numpy arrays ready for model training
+    1. Check cache for preprocessed data (if use_cache=True)
+    2. Load raw data from CSV files
+    3. Clean and preprocess (handle missing values, encode labels)
+    4. Split into train/val/test sets (stratified)
+    5. Apply optional balancing strategy to training set only
+    6. Normalize features (optional)
+    7. Cache the result for future use
+    8. Return numpy arrays ready for model training
 
     Args:
         dataset_type: Type of dataset to load ('physical' or 'network').
@@ -1076,6 +1090,9 @@ def load_ml_ready_data(
         noise_std: Noise std for oversampling_augmentation strategy.
         datasets: Specific dataset files to load (e.g., ['normal', 'attack_1']).
         nrows: For network data, limit rows per file.
+        use_cache: If True, cache preprocessed data and load from cache if available.
+        cache_dir: Directory for cached datasets (default: 'cached_datasets').
+        show_progress: If True, show tqdm progress bars during processing.
 
     Returns:
         MLDataset object containing all processed data and metadata.
@@ -1097,104 +1114,132 @@ def load_ml_ready_data(
     if not (0.99 < ratio_sum < 1.01):
         raise ValueError(f"Ratios must sum to 1.0, got {ratio_sum}")
 
+    # Generate cache key based on all parameters
+    cache_params = {
+        "dataset_type": dataset_type,
+        "train_ratio": train_ratio,
+        "val_ratio": val_ratio,
+        "test_ratio": test_ratio,
+        "balancing": balancing,
+        "normalize": normalize,
+        "n_samples": n_samples,
+        "random_state": random_state,
+        "noise_std": noise_std,
+        "datasets": sorted(datasets) if datasets else None,
+        "nrows": nrows,
+    }
+    cache_hash = hashlib.md5(str(cache_params).encode()).hexdigest()[:8]
+    nrows_str = str(nrows) if nrows else "all"
+    cache_filename = f"{dataset_type}_{nrows_str}_{random_state}_{cache_hash}.pkl"
+    cache_path = Path(cache_dir) / cache_filename
+
+    # Try to load from cache
+    if use_cache and cache_path.exists():
+        if show_progress:
+            print(f"Loading from cache: {cache_path}")
+        with open(cache_path, "rb") as f:
+            return pickle.load(f)
+
+    # Progress wrapper for showing steps
+    def progress_step(desc: str, total: int = 1):
+        if show_progress:
+            return tqdm(range(total), desc=desc, leave=False)
+        return range(total)
+
     config = DataConfig()
 
-    # Load raw data based on dataset type
-    if dataset_type == "physical":
-        loader = PhysicalDataLoader(config)
-        df: pd.DataFrame = loader.load(datasets=datasets)
-        label_col: str = "Label"
-        # Get features (exclude non-feature columns)
-        exclude_cols: set[str] = {"Time", "Label", "Label_n", "Lable_n", "source_file"}
-    else:
-        loader_net = NetworkDataLoader(config)
-        df = loader_net.load(datasets=datasets, nrows=nrows)
-        label_col = "label"
-        # Exclude non-numeric and label columns for network data
-        exclude_cols = {"Time", "label", "label_n", "source_file",
-                        "mac_s", "mac_d", "ip_s", "ip_d", "proto",
-                        "flags", "modbus_fn", "modbus_response"}
+    # Step 1: Load raw data
+    for _ in progress_step("Loading raw data"):
+        if dataset_type == "physical":
+            loader = PhysicalDataLoader(config)
+            df: pd.DataFrame = loader.load(datasets=datasets)
+            label_col: str = "Label"
+            exclude_cols: set[str] = {"Time", "Label", "Label_n", "Lable_n", "source_file"}
+        else:
+            loader_net = NetworkDataLoader(config)
+            df = loader_net.load(datasets=datasets, nrows=nrows)
+            label_col = "label"
+            exclude_cols = {"Time", "label", "label_n", "source_file",
+                            "mac_s", "mac_d", "ip_s", "ip_d", "proto",
+                            "flags", "modbus_fn", "modbus_response"}
 
-    # Limit samples if requested
-    if n_samples is not None and len(df) > n_samples:
-        df = df.sample(n=n_samples, random_state=random_state).reset_index(drop=True)
+    # Step 2: Sample and clean
+    for _ in progress_step("Sampling and cleaning data"):
+        if n_samples is not None and len(df) > n_samples:
+            df = df.sample(n=n_samples, random_state=random_state).reset_index(drop=True)
+        df = df.dropna(subset=[label_col]).reset_index(drop=True)
 
-    # Clean data: drop rows with missing labels
-    df = df.dropna(subset=[label_col]).reset_index(drop=True)
+    # Step 3: Extract features
+    for _ in progress_step("Extracting features"):
+        feature_cols: list[str] = [
+            c for c in df.columns
+            if c not in exclude_cols and df[c].dtype in [np.int64, np.float64, np.int32, np.float32]
+        ]
+        X: pd.DataFrame = df[feature_cols].copy()
+        y: pd.Series = df[label_col].copy()
+        X = X.fillna(0)
 
-    # Get feature columns (numeric only)
-    feature_cols: list[str] = [
-        c for c in df.columns
-        if c not in exclude_cols and df[c].dtype in [np.int64, np.float64, np.int32, np.float32]
-    ]
+    # Step 4: Encode labels
+    for _ in progress_step("Encoding labels"):
+        label_encoder = LabelEncoder()
+        y_encoded: np.ndarray = label_encoder.fit_transform(y)
+        class_names: list[str] = label_encoder.classes_.tolist()
+        n_classes: int = len(class_names)
+        X_arr: np.ndarray = X.values.astype(np.float64)
 
-    # Extract features and labels
-    X: pd.DataFrame = df[feature_cols].copy()
-    y: pd.Series = df[label_col].copy()
+    # Step 5: Stratified split
+    for _ in progress_step("Stratified train/val/test split"):
+        test_size_relative: float = test_ratio
+        val_size_relative: float = val_ratio / (train_ratio + val_ratio)
 
-    # Handle missing values in features (fill with 0)
-    X = X.fillna(0)
-
-    # Encode labels
-    label_encoder = LabelEncoder()
-    y_encoded: np.ndarray = label_encoder.fit_transform(y)
-
-    # Store class information
-    class_names: list[str] = label_encoder.classes_.tolist()
-    n_classes: int = len(class_names)
-
-    # Convert to numpy
-    X_arr: np.ndarray = X.values.astype(np.float64)
-
-    # Split: first train+val vs test, then train vs val
-    test_size_relative: float = test_ratio
-    val_size_relative: float = val_ratio / (train_ratio + val_ratio)
-
-    X_trainval, X_test, y_trainval, y_test = train_test_split(
-        X_arr, y_encoded,
-        test_size=test_size_relative,
-        random_state=random_state,
-        stratify=y_encoded,
-    )
-
-    X_train, X_val, y_train, y_val = train_test_split(
-        X_trainval, y_trainval,
-        test_size=val_size_relative,
-        random_state=random_state,
-        stratify=y_trainval,
-    )
-
-    # Apply balancing to training set only
-    n_unique_classes: int = len(np.unique(y_train))
-    if balancing != "none" and n_unique_classes > 1:
-        balance_func = {
-            "oversampling_copy": BalancingStrategy.oversampling_copy,
-            "oversampling_augmentation": lambda X, y, rs: BalancingStrategy.oversampling_augmentation(
-                X, y, noise_std=noise_std, random_state=rs
-            ),
-            "undersampling_standard": BalancingStrategy.undersampling_standard,
-            "undersampling_easy_data": BalancingStrategy.undersampling_easy_data,
-            "smote": BalancingStrategy.smote,
-        }
-
-        if balancing in balance_func:
-            X_train, y_train = balance_func[balancing](X_train, y_train, random_state)
-    elif balancing != "none" and n_unique_classes <= 1:
-        import warnings
-        warnings.warn(
-            f"Balancing strategy '{balancing}' skipped: only {n_unique_classes} class(es) in training data. "
-            "Increase n_samples or nrows_per_file to include more classes."
+        X_trainval, X_test, y_trainval, y_test = train_test_split(
+            X_arr, y_encoded,
+            test_size=test_size_relative,
+            random_state=random_state,
+            stratify=y_encoded,
         )
 
-    # Normalize features (fit on train only)
-    scaler: StandardScaler | None = None
-    if normalize:
-        scaler = StandardScaler()
-        X_train = scaler.fit_transform(X_train)
-        X_val = scaler.transform(X_val)
-        X_test = scaler.transform(X_test)
+        X_train, X_val, y_train, y_val = train_test_split(
+            X_trainval, y_trainval,
+            test_size=val_size_relative,
+            random_state=random_state,
+            stratify=y_trainval,
+        )
 
-    return MLDataset(
+    # Step 6: Apply balancing
+    for _ in progress_step(f"Applying balancing ({balancing})"):
+        n_unique_classes: int = len(np.unique(y_train))
+        if balancing != "none" and n_unique_classes > 1:
+            balance_func = {
+                "oversampling_copy": BalancingStrategy.oversampling_copy,
+                "oversampling_augmentation": lambda X, y, rs: BalancingStrategy.oversampling_augmentation(
+                    X, y, noise_std=noise_std, random_state=rs
+                ),
+                "undersampling_standard": BalancingStrategy.undersampling_standard,
+                "undersampling_easy_data": BalancingStrategy.undersampling_easy_data,
+                "smote": BalancingStrategy.smote,
+            }
+
+            if balancing in balance_func:
+                X_train, y_train = balance_func[balancing](X_train, y_train, random_state)
+        elif balancing != "none" and n_unique_classes <= 1:
+            import warnings
+            warnings.warn(
+                f"Balancing strategy '{balancing}' skipped: only {n_unique_classes} class(es) in training data. "
+                "Increase n_samples or nrows_per_file to include more classes."
+            )
+
+    # Step 7: Normalize
+    for _ in progress_step("Normalizing features"):
+        scaler: StandardScaler | None = None
+        if normalize:
+            scaler = StandardScaler()
+            X_train = scaler.fit_transform(X_train)
+            X_val = scaler.transform(X_val)
+            X_test = scaler.transform(X_test)
+
+    # Create result
+    result = MLDataset(
         X_train=X_train,
         X_val=X_val,
         X_test=X_test,
@@ -1207,3 +1252,15 @@ def load_ml_ready_data(
         class_names=class_names,
         n_classes=n_classes,
     )
+
+    # Step 8: Cache result
+    if use_cache:
+        for _ in progress_step("Caching processed data"):
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(cache_path, "wb") as f:
+                pickle.dump(result, f)
+            if show_progress:
+                print(f"Cached to: {cache_path}")
+
+    return result
+
