@@ -76,7 +76,7 @@ Outputs are saved to `results_analysis/` (report.md, leaderboard.csv, plots).
 
 - **Data Caching**: Processed datasets are cached to `cached_datasets/` with a hash of their configuration. Subsequent runs load instantly.
 - **Stratified Sampling**: Network datasets (large) are sampled using a memory-efficient stratified approach to ensure class balance (especially for rare 'anomaly' classes).
-- **Progress Tracking**: 
+- **Progress Tracking**:
   - Data loading shows detailed steps (loading, sampling, encoding).
   - Training loops show batch-level `tqdm` progress bars with live metrics.
 - **Models Implemented**:
