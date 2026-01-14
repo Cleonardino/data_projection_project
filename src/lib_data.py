@@ -12,6 +12,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Literal, Callable, Iterator
 from datetime import datetime
+import pickle
+import hashlib
 
 import pandas as pd
 import numpy as np
@@ -24,8 +26,6 @@ except ImportError:
     # Fallback if tqdm not installed
     def tqdm(iterable, **kwargs):
         return iterable
-import pickle
-import hashlib
 
 
 # =============================================================================

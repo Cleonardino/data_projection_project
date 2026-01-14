@@ -19,6 +19,12 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 
+try:
+    from tqdm import tqdm
+except ImportError:
+    def tqdm(iterable, **kwargs):
+        return iterable
+
 from .base_model import BaseModel, TrainingHistory
 
 
@@ -227,7 +233,7 @@ class MLPModel(BaseModel):
         best_state: dict[str, Any] = {}
         patience_counter: int = 0
 
-        for epoch in range(params["epochs"]):
+        for epoch in tqdm(range(params["epochs"]), desc=f"Training {self.name}", unit="epoch"):
             # Training phase
             self.model.train()
             train_loss: float = 0.0

@@ -24,6 +24,12 @@ from torch.utils.data import DataLoader, TensorDataset
 
 from .base_model import BaseModel, TrainingHistory
 
+try:
+    from tqdm import tqdm
+except ImportError:
+    def tqdm(iterable, **kwargs):
+        return iterable
+
 
 class FeatureTokenizer(nn.Module):
     """
@@ -251,7 +257,7 @@ class FTTransformerModel(BaseModel):
         best_state: dict[str, Any] = {}
         patience_counter: int = 0
 
-        for epoch in range(params["epochs"]):
+        for epoch in tqdm(range(params["epochs"]), desc=f"Training {self.name}", unit="epoch"):
             self.model.train()
             train_loss: float = 0.0
             train_correct: int = 0
