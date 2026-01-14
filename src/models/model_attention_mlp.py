@@ -278,26 +278,33 @@ class AttentionMLPModel(BaseModel):
         best_state: dict[str, Any] = {}
         patience_counter: int = 0
 
-        for epoch in tqdm(range(params["epochs"]), desc=f"Training {self.name}", unit="epoch"):
+        for epoch in range(params["epochs"]):
             self.model.train()
             train_loss: float = 0.0
             train_correct: int = 0
             train_total: int = 0
 
-            for batch_X, batch_y in train_loader:
-                batch_X = batch_X.to(self.device)
-                batch_y = batch_y.to(self.device)
+            # Batch loop with progress bar
+            with tqdm(train_loader, desc=f"Epoch {epoch+1}/{params['epochs']}", unit="batch") as tepoch:
+                for batch_X, batch_y in tepoch:
+                    batch_X = batch_X.to(self.device)
+                    batch_y = batch_y.to(self.device)
 
-                optimizer.zero_grad()
-                outputs = self.model(batch_X)
-                loss = criterion(outputs, batch_y)
-                loss.backward()
-                optimizer.step()
+                    optimizer.zero_grad()
+                    outputs = self.model(batch_X)
+                    loss = criterion(outputs, batch_y)
+                    loss.backward()
+                    optimizer.step()
 
-                train_loss += loss.item() * len(batch_y)
-                _, predicted = outputs.max(1)
-                train_correct += predicted.eq(batch_y).sum().item()
-                train_total += len(batch_y)
+                    # Update metrics
+                    current_loss = loss.item()
+                    train_loss += current_loss * len(batch_y)
+                    _, predicted = outputs.max(1)
+                    train_correct += predicted.eq(batch_y).sum().item()
+                    train_total += len(batch_y)
+
+                    # Update progress bar
+                    tepoch.set_postfix(loss=f"{current_loss:.4f}")
 
             train_loss /= train_total
             train_acc: float = train_correct / train_total
@@ -340,7 +347,12 @@ class AttentionMLPModel(BaseModel):
                     patience_counter += 1
 
                 if params["early_stopping"] and patience_counter >= params["patience"]:
+                    print(f"Early stopping triggered at epoch {epoch+1}")
                     break
+
+            # Print epoch summary
+            val_str = f" | Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.4f}" if val_loader else ""
+            print(f"Epoch {epoch+1}: Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.4f}{val_str}")
 
             scheduler.step()
 

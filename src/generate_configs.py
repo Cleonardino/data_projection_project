@@ -84,13 +84,13 @@ TRAINING_SETTINGS: dict[str, dict[str, Any]] = {
         "epochs": 50,
         "batch_size": 32,
         "learning_rate": 0.001,
-        "patience": 10,
+        "patience": 5,
     },
     "large": {
         "epochs": 200,
         "batch_size": 16,
         "learning_rate": 0.0005,
-        "patience": 20,
+        "patience": 3,
     },
 }
 
