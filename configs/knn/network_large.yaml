@@ -9,6 +9,7 @@ data:
   balancing: smote
   normalize: true
   seed: 42
+  nrows_per_file: 600000
 model:
   name: knn
   hyperparameters:

@@ -105,8 +105,8 @@ DATA_SETTINGS: dict[str, dict[str, dict[str, Any]]] = {
         # Network files have time-ordered data with attacks appearing after ~50k rows
         # Must load enough rows per file to capture attack labels ('anomaly')
         "small": {"nrows_per_file": 100000, "balancing": "none"},  # ~500k rows total
-        "medium": {"nrows_per_file": 500000, "balancing": "oversampling_copy"},  # ~2.5M rows
-        "large": {"nrows_per_file": None, "balancing": "smote"},  # Full dataset
+        "medium": {"nrows_per_file": 400000, "balancing": "oversampling_copy"},  # ~2.5M rows
+        "large": {"nrows_per_file": 600000, "balancing": "smote"},  # Full dataset
     },
 }
 
