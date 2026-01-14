@@ -29,21 +29,21 @@ MODEL_REGISTRY: dict[str, type[BaseModel]] = {
 def get_model(name: str, hyperparameters: dict | None = None) -> BaseModel:
     """
     Factory function to create model instances by name.
-    
+
     Args:
         name: Model name (e.g., 'xgboost', 'mlp', 'tab_transformer').
         hyperparameters: Optional model hyperparameters.
-    
+
     Returns:
         Instantiated model object.
-    
+
     Raises:
         ValueError: If model name is not in registry.
     """
     if name not in MODEL_REGISTRY:
         available = ", ".join(MODEL_REGISTRY.keys())
         raise ValueError(f"Unknown model: {name}. Available: {available}")
-    
+
     return MODEL_REGISTRY[name](hyperparameters)
 
 

@@ -1,0 +1,2 @@
+,Experiment,Model,Dataset,Config,Accuracy,F1 (macro),F1 (weighted),Balanced Acc,MCC,Training Time (s),Best Epoch
+1,2026-01-14_19-43-01_physical_small_xgboost,xgboost,physical,physical_small,0.91,0.7723256932559259,0.904349661248886,0.7286149007607634,0.7588114903083595,0.3420090675354004,1

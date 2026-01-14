@@ -64,17 +64,17 @@ def print_table(df: pd.DataFrame, max_rows: int = 20) -> None:
 def show_summary(df: pd.DataFrame, data_type: str) -> None:
     """Display statistical summary of the data."""
     print_header(f"{data_type.upper()} DATA SUMMARY")
-    
+
     summary = get_data_summary(df)
     print(f"\nRows: {summary['n_rows']:,}")
     print(f"Columns: {summary['n_columns']}")
     print(f"Memory Usage: {summary['memory_mb']:.2f} MB")
     print(f"Missing Values: {summary['missing_values']}")
-    
+
     print("\nColumn Types:")
     for dtype, count in summary["dtypes"].items():
         print(f"  - {dtype}: {count}")
-    
+
     print("\nNumeric Columns Statistics:")
     numeric_df = df.select_dtypes(include=[np.number])
     if not numeric_df.empty:
@@ -84,14 +84,14 @@ def show_summary(df: pd.DataFrame, data_type: str) -> None:
 def show_quality_report(df: pd.DataFrame, data_type: str) -> pd.DataFrame:
     """Display data quality report."""
     print_header(f"{data_type.upper()} DATA QUALITY REPORT")
-    
+
     quality_data = []
     for col in df.columns:
         missing = df[col].isnull().sum()
         missing_pct = (missing / len(df)) * 100
         unique = df[col].nunique()
         dtype = str(df[col].dtype)
-        
+
         quality_data.append({
             "column": col,
             "dtype": dtype,
@@ -99,10 +99,10 @@ def show_quality_report(df: pd.DataFrame, data_type: str) -> pd.DataFrame:
             "missing_%": round(missing_pct, 2),
             "unique": unique,
         })
-    
+
     quality_df = pd.DataFrame(quality_data)
     print_table(quality_df)
-    
+
     # Highlight issues
     issues = quality_df[quality_df["missing"] > 0]
     if not issues.empty:
@@ -111,49 +111,49 @@ def show_quality_report(df: pd.DataFrame, data_type: str) -> pd.DataFrame:
             print(f"  - {row['column']}: {row['missing']} ({row['missing_%']}%)")
     else:
         print("\n✅ No missing values found!")
-    
+
     return quality_df
 
 
 def show_label_distribution(df: pd.DataFrame, data_type: str, label_col: str) -> pd.DataFrame:
     """Display label distribution analysis."""
     print_header(f"{data_type.upper()} LABEL DISTRIBUTION")
-    
+
     if label_col not in df.columns:
         print(f"⚠️  Label column '{label_col}' not found.")
         return pd.DataFrame()
-    
+
     dist_df = get_label_distribution(df, label_col)
     print_table(dist_df)
-    
+
     # Imbalance analysis
     print("\nImbalance Analysis:")
     max_count = dist_df["count"].max()
     min_count = dist_df["count"].min()
     ratio = max_count / min_count if min_count > 0 else float("inf")
     print(f"  - Max/Min class ratio: {ratio:.2f}")
-    
+
     if ratio > 10:
         print("  ⚠️  High imbalance detected! Consider using oversampling/undersampling.")
     elif ratio > 3:
         print("  ⚡ Moderate imbalance. May benefit from balancing strategies.")
     else:
         print("  ✅ Classes are relatively balanced.")
-    
+
     return dist_df
 
 
 def show_correlations(df: pd.DataFrame, data_type: str, top_n: int = 10) -> pd.DataFrame:
     """Display feature correlations (top N strongest)."""
     print_header(f"{data_type.upper()} FEATURE CORRELATIONS")
-    
+
     numeric_df = df.select_dtypes(include=[np.number])
     if numeric_df.empty:
         print("No numeric columns found for correlation analysis.")
         return pd.DataFrame()
-    
+
     corr_matrix = numeric_df.corr()
-    
+
     # Get top correlations (excluding self-correlations)
     correlations = []
     for i in range(len(corr_matrix.columns)):
@@ -166,13 +166,13 @@ def show_correlations(df: pd.DataFrame, data_type: str, top_n: int = 10) -> pd.D
                 "feature_2": col2,
                 "correlation": round(corr, 4),
             })
-    
+
     corr_df = pd.DataFrame(correlations)
     corr_df = corr_df.sort_values("correlation", key=abs, ascending=False).head(top_n)
-    
+
     print(f"Top {top_n} Strongest Correlations:")
     print_table(corr_df.reset_index(drop=True))
-    
+
     return corr_matrix
 
 
@@ -199,7 +199,7 @@ Examples:
   python src/data_explore.py --physical --all
         """
     )
-    
+
     # Data source (mutually exclusive)
     data_group = parser.add_mutually_exclusive_group(required=True)
     data_group.add_argument(
@@ -212,7 +212,7 @@ Examples:
         action="store_true",
         help="Analyze network traffic data"
     )
-    
+
     # Analysis options
     parser.add_argument(
         "--summary", "-s",
@@ -245,7 +245,7 @@ Examples:
         action="store_true",
         help="Run all analyses"
     )
-    
+
     # Data options
     parser.add_argument(
         "--datasets",
@@ -258,7 +258,7 @@ Examples:
         type=int,
         help="Limit number of rows per file (useful for large network data)"
     )
-    
+
     # Export
     parser.add_argument(
         "--export", "-e",
@@ -266,21 +266,21 @@ Examples:
         metavar="PATH",
         help="Export processed data to file"
     )
-    
+
     return parser.parse_args()
 
 
 def main() -> None:
     """Main entry point."""
     args = parse_args()
-    
+
     config = DataConfig()
     data_type = "physical" if args.physical else "network"
     label_col = "Label" if args.physical else "label"
-    
+
     # Load data
     print_header(f"LOADING {data_type.upper()} DATA")
-    
+
     if args.physical:
         loader = PhysicalDataLoader(config)
         df = loader.load(datasets=args.datasets)
@@ -293,32 +293,32 @@ def main() -> None:
             print("Note: Network data is large. Loading first 10000 rows per file.")
             print("Use --nrows to specify a different limit.")
             df = loader.load(datasets=args.datasets, nrows=10000)
-    
+
     print(f"Loaded {len(df):,} rows, {len(df.columns)} columns")
-    
+
     # Run analyses
     any_analysis = args.summary or args.quality or args.label_dist or args.correlations or args.sample or args.all
-    
+
     if not any_analysis:
         print("\nNo analysis specified. Use --help for options.")
         print("Common options: --summary, --quality, --label-dist, --sample N")
         return
-    
+
     if args.all or args.summary:
         show_summary(df, data_type)
-    
+
     if args.all or args.quality:
         quality_df = show_quality_report(df, data_type)
-    
+
     if args.all or args.label_dist:
         show_label_distribution(df, data_type, label_col)
-    
+
     if args.all or args.correlations:
         show_correlations(df, data_type)
-    
+
     if args.sample:
         show_sample(df, data_type, args.sample)
-    
+
     # Export
     if args.export:
         export_path = Path(args.export)

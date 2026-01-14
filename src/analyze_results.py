@@ -1,0 +1,637 @@
+#!/usr/bin/env python3
+"""
+analyze_results.py - Comprehensive Results Analysis
+
+Analyzes all experiment results and generates a markdown report with:
+- Model leaderboard (ranked by various metrics)
+- Training curves for all models
+- Error analysis (hardest classes/samples)
+- Model correlation matrix (which models make similar mistakes)
+
+Output:
+    results_analysis/
+    ├── report.md           # Full markdown report
+    ├── leaderboard.csv     # Metrics table
+    ├── training_curves/    # Training curve plots
+    ├── confusion_matrices/ # Per-model confusion matrices
+    └── correlation/        # Model correlation analysis
+
+Usage:
+    python src/analyze_results.py
+    python src/analyze_results.py --experiments-dir experiments/
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from collections import defaultdict
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+import pandas as pd
+
+# Try to import plotting libraries
+try:
+    import matplotlib
+    matplotlib.use('Agg')  # Non-interactive backend
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    HAS_PLOTTING = True
+except ImportError:
+    HAS_PLOTTING = False
+    print("Warning: matplotlib/seaborn not available. Plots will be skipped.")
+
+
+def load_experiment_results(experiments_dir: Path) -> list[dict[str, Any]]:
+    """
+    Load results from all experiment folders.
+
+    Args:
+        experiments_dir: Directory containing experiment folders.
+
+    Returns:
+        List of experiment result dictionaries.
+    """
+    results: list[dict[str, Any]] = []
+
+    for exp_folder in sorted(experiments_dir.iterdir()):
+        if not exp_folder.is_dir():
+            continue
+
+        metrics_file = exp_folder / "metrics.json"
+        config_file = exp_folder / "config.yaml"
+
+        if not metrics_file.exists():
+            continue
+
+        # Load metrics
+        with open(metrics_file, "r") as f:
+            metrics = json.load(f)
+
+        # Load config if available
+        config: dict[str, Any] = {}
+        if config_file.exists():
+            import yaml
+            with open(config_file, "r") as f:
+                config = yaml.safe_load(f)
+
+        # Parse folder name for metadata
+        folder_name = exp_folder.name
+        parts = folder_name.split("_")
+
+        # Extract model name from folder (last part)
+        model_name = parts[-1] if parts else "unknown"
+
+        # Get dataset and size from config
+        dataset_type = config.get("data", {}).get("dataset_type", "unknown")
+        exp_name = config.get("experiment", {}).get("name", "unknown")
+
+        results.append({
+            "experiment_folder": str(exp_folder),
+            "folder_name": folder_name,
+            "model": model_name,
+            "dataset": dataset_type,
+            "experiment_name": exp_name,
+            "config": config,
+            "metrics": metrics,
+        })
+
+    return results
+
+
+def create_leaderboard(results: list[dict[str, Any]]) -> pd.DataFrame:
+    """
+    Create a leaderboard DataFrame from experiment results.
+
+    Args:
+        results: List of experiment result dicts.
+
+    Returns:
+        DataFrame with model rankings.
+    """
+    rows: list[dict[str, Any]] = []
+
+    for exp in results:
+        metrics = exp["metrics"]
+        test_metrics = metrics.get("metrics", {}).get("test", {})
+        training = metrics.get("training", {})
+
+        rows.append({
+            "Experiment": exp["folder_name"],
+            "Model": exp["model"],
+            "Dataset": exp["dataset"],
+            "Config": exp["experiment_name"],
+            "Accuracy": test_metrics.get("accuracy", 0),
+            "F1 (macro)": test_metrics.get("f1_macro", 0),
+            "F1 (weighted)": test_metrics.get("f1_weighted", 0),
+            "Balanced Acc": test_metrics.get("balanced_accuracy", 0),
+            "MCC": test_metrics.get("mcc", 0),
+            "Training Time (s)": training.get("training_time_seconds", 0),
+            "Best Epoch": training.get("best_epoch", 0),
+        })
+
+    df = pd.DataFrame(rows)
+
+    if len(df) > 0:
+        # Sort by F1 macro descending
+        df = df.sort_values("F1 (macro)", ascending=False).reset_index(drop=True)
+        df.index = df.index + 1  # 1-indexed ranking
+
+    return df
+
+
+def load_error_files(experiments_dir: Path) -> dict[str, pd.DataFrame]:
+    """
+    Load all test error CSVs from experiments.
+
+    Args:
+        experiments_dir: Directory containing experiment folders.
+
+    Returns:
+        Dict mapping experiment name to error DataFrame.
+    """
+    errors: dict[str, pd.DataFrame] = {}
+
+    for exp_folder in experiments_dir.iterdir():
+        if not exp_folder.is_dir():
+            continue
+
+        error_file = exp_folder / "test_errors.csv"
+        if error_file.exists():
+            df = pd.read_csv(error_file)
+            errors[exp_folder.name] = df
+
+    return errors
+
+
+def analyze_hard_samples(errors: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Analyze which samples are hardest across all models.
+
+    Args:
+        errors: Dict of experiment name -> error DataFrame.
+
+    Returns:
+        Tuple of (hard_samples_df, hard_classes_df).
+    """
+    if not errors:
+        return pd.DataFrame(), pd.DataFrame()
+
+    # Combine all predictions
+    sample_errors: dict[int, dict[str, Any]] = defaultdict(lambda: {"total_wrong": 0, "models_wrong": []})
+    class_errors: dict[str, dict[str, int]] = defaultdict(lambda: {"total": 0, "wrong": 0})
+
+    for exp_name, df in errors.items():
+        for _, row in df.iterrows():
+            sample_idx = row["sample_idx"]
+            true_label = row["true_label"]
+            is_correct = row["is_correct"]
+
+            class_errors[true_label]["total"] += 1
+
+            if not is_correct:
+                sample_errors[sample_idx]["total_wrong"] += 1
+                sample_errors[sample_idx]["models_wrong"].append(exp_name)
+                sample_errors[sample_idx]["true_label"] = true_label
+                sample_errors[sample_idx]["pred_labels"] = sample_errors[sample_idx].get("pred_labels", [])
+                sample_errors[sample_idx]["pred_labels"].append(row["pred_label"])
+                class_errors[true_label]["wrong"] += 1
+
+    # Create hard samples DataFrame
+    hard_samples_rows: list[dict[str, Any]] = []
+    for sample_idx, info in sample_errors.items():
+        if info["total_wrong"] > 0:
+            hard_samples_rows.append({
+                "sample_idx": sample_idx,
+                "true_label": info.get("true_label", ""),
+                "times_wrong": info["total_wrong"],
+                "wrong_by_models": len(info["models_wrong"]),
+                "common_wrong_pred": max(set(info.get("pred_labels", [])), key=info.get("pred_labels", []).count) if info.get("pred_labels") else "",
+            })
+
+    hard_samples_df = pd.DataFrame(hard_samples_rows)
+    if len(hard_samples_df) > 0:
+        hard_samples_df = hard_samples_df.sort_values("times_wrong", ascending=False).head(50)
+
+    # Create hard classes DataFrame
+    hard_classes_rows: list[dict[str, Any]] = []
+    for class_name, counts in class_errors.items():
+        if counts["total"] > 0:
+            error_rate = counts["wrong"] / counts["total"]
+            hard_classes_rows.append({
+                "class": class_name,
+                "total_predictions": counts["total"],
+                "total_errors": counts["wrong"],
+                "error_rate": error_rate,
+            })
+
+    hard_classes_df = pd.DataFrame(hard_classes_rows)
+    if len(hard_classes_df) > 0:
+        hard_classes_df = hard_classes_df.sort_values("error_rate", ascending=False)
+
+    return hard_samples_df, hard_classes_df
+
+
+def compute_model_correlation(errors: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    """
+    Compute correlation between models based on error patterns.
+
+    Two models are similar if they make mistakes on the same samples.
+
+    Args:
+        errors: Dict of experiment name -> error DataFrame.
+
+    Returns:
+        Correlation matrix DataFrame.
+    """
+    if len(errors) < 2:
+        return pd.DataFrame()
+
+    # Build error vectors for each model
+    exp_names = list(errors.keys())
+
+    # Get all sample indices
+    all_samples: set[int] = set()
+    for df in errors.values():
+        all_samples.update(df["sample_idx"].tolist())
+
+    sample_list = sorted(all_samples)
+    n_samples = len(sample_list)
+    sample_to_idx = {s: i for i, s in enumerate(sample_list)}
+
+    # Create binary error matrix (1 = wrong, 0 = correct)
+    error_matrix = np.zeros((len(exp_names), n_samples))
+
+    for i, exp_name in enumerate(exp_names):
+        df = errors[exp_name]
+        for _, row in df.iterrows():
+            sample_idx = sample_to_idx.get(row["sample_idx"])
+            if sample_idx is not None and not row["is_correct"]:
+                error_matrix[i, sample_idx] = 1
+
+    # Compute correlation
+    # Using Jaccard similarity: intersection / union of errors
+    n_models = len(exp_names)
+    correlation = np.zeros((n_models, n_models))
+
+    for i in range(n_models):
+        for j in range(n_models):
+            errors_i = error_matrix[i]
+            errors_j = error_matrix[j]
+
+            intersection = np.sum(errors_i * errors_j)
+            union = np.sum(np.maximum(errors_i, errors_j))
+
+            if union > 0:
+                correlation[i, j] = intersection / union
+            else:
+                correlation[i, j] = 1.0 if i == j else 0.0
+
+    # Shorten experiment names for display
+    short_names = [name.split("_")[-1] for name in exp_names]
+
+    return pd.DataFrame(correlation, index=short_names, columns=short_names)
+
+
+def plot_training_curves(experiments_dir: Path, output_dir: Path) -> list[Path]:
+    """
+    Generate training curve plots for all experiments.
+
+    Args:
+        experiments_dir: Directory containing experiments.
+        output_dir: Output directory for plots.
+
+    Returns:
+        List of generated plot paths.
+    """
+    if not HAS_PLOTTING:
+        return []
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    plots: list[Path] = []
+
+    for exp_folder in experiments_dir.iterdir():
+        if not exp_folder.is_dir():
+            continue
+
+        history_file = exp_folder / "training_history.csv"
+        if not history_file.exists():
+            continue
+
+        try:
+            df = pd.read_csv(history_file)
+            if len(df) == 0 or "epoch" not in df.columns:
+                continue
+
+            fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+
+            # Loss plot
+            if "train_loss" in df.columns and df["train_loss"].notna().any():
+                axes[0].plot(df["epoch"], df["train_loss"], label="Train", marker="o", markersize=2)
+            if "val_loss" in df.columns and df["val_loss"].notna().any():
+                axes[0].plot(df["epoch"], df["val_loss"], label="Val", marker="o", markersize=2)
+            axes[0].set_xlabel("Epoch")
+            axes[0].set_ylabel("Loss")
+            axes[0].set_title(f"{exp_folder.name}\nLoss")
+            axes[0].legend()
+            axes[0].grid(True, alpha=0.3)
+
+            # Accuracy plot
+            if "train_accuracy" in df.columns:
+                axes[1].plot(df["epoch"], df["train_accuracy"], label="Train", marker="o", markersize=2)
+            if "val_accuracy" in df.columns and df["val_accuracy"].notna().any():
+                axes[1].plot(df["epoch"], df["val_accuracy"], label="Val", marker="o", markersize=2)
+            axes[1].set_xlabel("Epoch")
+            axes[1].set_ylabel("Accuracy")
+            axes[1].set_title("Accuracy")
+            axes[1].legend()
+            axes[1].grid(True, alpha=0.3)
+
+            plt.tight_layout()
+
+            plot_path = output_dir / f"{exp_folder.name}.png"
+            plt.savefig(plot_path, dpi=100)
+            plt.close()
+
+            plots.append(plot_path)
+
+        except Exception as e:
+            print(f"Warning: Could not plot {exp_folder.name}: {e}")
+
+    return plots
+
+
+def plot_correlation_matrix(correlation_df: pd.DataFrame, output_path: Path) -> None:
+    """Plot correlation heatmap."""
+    if not HAS_PLOTTING or correlation_df.empty:
+        return
+
+    fig, ax = plt.subplots(figsize=(12, 10))
+
+    sns.heatmap(
+        correlation_df,
+        annot=True,
+        fmt=".2f",
+        cmap="RdYlGn",
+        vmin=0,
+        vmax=1,
+        ax=ax,
+        square=True,
+    )
+
+    ax.set_title("Model Error Correlation\n(Jaccard similarity of misclassified samples)")
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()
+
+
+def generate_report(
+    output_dir: Path,
+    leaderboard: pd.DataFrame,
+    hard_samples: pd.DataFrame,
+    hard_classes: pd.DataFrame,
+    correlation: pd.DataFrame,
+    training_curves: list[Path],
+) -> Path:
+    """
+    Generate comprehensive markdown report.
+
+    Args:
+        output_dir: Output directory.
+        leaderboard: Leaderboard DataFrame.
+        hard_samples: Hard samples DataFrame.
+        hard_classes: Hard classes DataFrame.
+        correlation: Model correlation DataFrame.
+        training_curves: List of training curve plot paths.
+
+    Returns:
+        Path to generated report.
+    """
+    report_path = output_dir / "report.md"
+
+    with open(report_path, "w") as f:
+        # Header
+        f.write("# ML Experiment Results Analysis\n\n")
+        f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+        f.write("---\n\n")
+
+        # Leaderboard
+        f.write("## 📊 Model Leaderboard\n\n")
+        f.write("Ranked by F1 (macro) score on test set.\n\n")
+
+        if len(leaderboard) > 0:
+            # Simplified table for markdown
+            table_cols = ["Model", "Dataset", "Config", "Accuracy", "F1 (macro)", "Balanced Acc", "MCC", "Time (s)"]
+
+            f.write("| Rank | " + " | ".join(table_cols) + " |\n")
+            f.write("|------|" + "|".join(["---" for _ in table_cols]) + "|\n")
+
+            for rank, row in leaderboard.iterrows():
+                values = [
+                    row["Model"],
+                    row["Dataset"],
+                    row["Config"],
+                    f"{row['Accuracy']:.4f}",
+                    f"{row['F1 (macro)']:.4f}",
+                    f"{row['Balanced Acc']:.4f}",
+                    f"{row['MCC']:.4f}",
+                    f"{row['Training Time (s)']:.1f}",
+                ]
+                f.write(f"| {rank} | " + " | ".join(values) + " |\n")
+        else:
+            f.write("*No experiments found.*\n")
+
+        f.write("\n---\n\n")
+
+        # Hard Classes
+        f.write("## 🎯 Hard Classes Analysis\n\n")
+        f.write("Classes with highest error rates across all models.\n\n")
+
+        if len(hard_classes) > 0:
+            f.write("| Class | Total | Errors | Error Rate |\n")
+            f.write("|-------|-------|--------|------------|\n")
+
+            for _, row in hard_classes.iterrows():
+                f.write(f"| {row['class']} | {row['total_predictions']} | {row['total_errors']} | {row['error_rate']:.2%} |\n")
+        else:
+            f.write("*No error data available.*\n")
+
+        f.write("\n---\n\n")
+
+        # Hard Samples
+        f.write("## 🔍 Hardest Samples\n\n")
+        f.write("Samples misclassified by most models (top 20).\n\n")
+
+        if len(hard_samples) > 0:
+            f.write("| Sample | True Label | Times Wrong | Common Prediction |\n")
+            f.write("|--------|------------|-------------|-------------------|\n")
+
+            for _, row in hard_samples.head(20).iterrows():
+                f.write(f"| {row['sample_idx']} | {row['true_label']} | {row['times_wrong']} | {row['common_wrong_pred']} |\n")
+        else:
+            f.write("*No error data available.*\n")
+
+        f.write("\n---\n\n")
+
+        # Model Correlation
+        f.write("## 🔗 Model Error Correlation\n\n")
+        f.write("Which models make similar mistakes? (Jaccard similarity of error sets)\n\n")
+
+        if len(correlation) > 0:
+            # Text table
+            f.write("**Correlation Matrix:**\n\n")
+            f.write("| Model | " + " | ".join(correlation.columns) + " |\n")
+            f.write("|-------|" + "|".join(["---" for _ in correlation.columns]) + "|\n")
+
+            for idx, row in correlation.iterrows():
+                values = [f"{v:.2f}" for v in row]
+                f.write(f"| {idx} | " + " | ".join(values) + " |\n")
+
+            f.write("\n")
+
+            if (output_dir / "correlation" / "correlation_heatmap.png").exists():
+                f.write("![Correlation Heatmap](correlation/correlation_heatmap.png)\n")
+        else:
+            f.write("*Need at least 2 experiments for correlation analysis.*\n")
+
+        f.write("\n---\n\n")
+
+        # Training Curves
+        f.write("## 📈 Training Curves\n\n")
+
+        if training_curves:
+            for plot in training_curves:
+                exp_name = plot.stem
+                f.write(f"### {exp_name}\n\n")
+                f.write(f"![{exp_name}](training_curves/{plot.name})\n\n")
+        else:
+            f.write("*No training curves available.*\n")
+
+    return report_path
+
+
+def analyze_results(
+    experiments_dir: Path,
+    output_dir: Path,
+) -> None:
+    """
+    Run full analysis and generate report.
+
+    Args:
+        experiments_dir: Directory containing experiments.
+        output_dir: Output directory for analysis.
+    """
+    print("=" * 60)
+    print("RESULTS ANALYSIS")
+    print("=" * 60)
+    print(f"Experiments directory: {experiments_dir}")
+    print(f"Output directory: {output_dir}")
+    print()
+
+    # Create output directories
+    output_dir.mkdir(parents=True, exist_ok=True)
+    curves_dir = output_dir / "training_curves"
+    correlation_dir = output_dir / "correlation"
+    curves_dir.mkdir(exist_ok=True)
+    correlation_dir.mkdir(exist_ok=True)
+
+    # Load results
+    print("Loading experiment results...")
+    results = load_experiment_results(experiments_dir)
+    print(f"  Found {len(results)} experiments")
+
+    # Create leaderboard
+    print("Creating leaderboard...")
+    leaderboard = create_leaderboard(results)
+    leaderboard.to_csv(output_dir / "leaderboard.csv", index=True)
+
+    # Load errors
+    print("Loading error files...")
+    errors = load_error_files(experiments_dir)
+    print(f"  Found {len(errors)} error files")
+
+    # Analyze hard samples
+    print("Analyzing hard samples...")
+    hard_samples, hard_classes = analyze_hard_samples(errors)
+
+    if len(hard_samples) > 0:
+        hard_samples.to_csv(output_dir / "hard_samples.csv", index=False)
+    if len(hard_classes) > 0:
+        hard_classes.to_csv(output_dir / "hard_classes.csv", index=False)
+
+    # Compute correlation
+    print("Computing model correlation...")
+    correlation = compute_model_correlation(errors)
+
+    if len(correlation) > 0:
+        correlation.to_csv(correlation_dir / "correlation_matrix.csv")
+        plot_correlation_matrix(correlation, correlation_dir / "correlation_heatmap.png")
+
+    # Plot training curves
+    print("Generating training curve plots...")
+    training_curves = plot_training_curves(experiments_dir, curves_dir)
+    print(f"  Generated {len(training_curves)} plots")
+
+    # Generate report
+    print("Generating markdown report...")
+    report_path = generate_report(
+        output_dir,
+        leaderboard,
+        hard_samples,
+        hard_classes,
+        correlation,
+        training_curves,
+    )
+
+    print()
+    print("=" * 60)
+    print(f"✅ Analysis complete!")
+    print(f"   Report: {report_path}")
+    print("=" * 60)
+
+
+def parse_args() -> argparse.Namespace:
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        description="Analyze ML experiment results",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    parser.add_argument(
+        "--experiments-dir", "-e",
+        type=Path,
+        default=None,
+        help="Experiments directory (default: experiments/)",
+    )
+
+    parser.add_argument(
+        "--output-dir", "-o",
+        type=Path,
+        default=None,
+        help="Output directory (default: results_analysis/)",
+    )
+
+    return parser.parse_args()
+
+
+def main() -> None:
+    """Main entry point."""
+    args = parse_args()
+
+    script_dir = Path(__file__).parent
+    experiments_dir = args.experiments_dir or script_dir.parent / "experiments"
+    output_dir = args.output_dir or script_dir.parent / "results_analysis"
+
+    if not experiments_dir.exists():
+        print(f"Error: Experiments directory not found: {experiments_dir}")
+        sys.exit(1)
+
+    analyze_results(experiments_dir, output_dir)
+
+
+if __name__ == "__main__":
+    main()
