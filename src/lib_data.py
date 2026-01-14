@@ -603,7 +603,205 @@ class DataFilter:
 # =============================================================================
 
 class BalancingStrategy:
-    """Utilities for handling class imbalance via oversampling/undersampling."""
+    """
+    Utilities for handling class imbalance via oversampling/undersampling.
+    
+    Supports multiple strategies:
+    - oversampling_copy: Random duplication of minority samples
+    - oversampling_augmentation: Duplication with Gaussian noise
+    - undersampling_standard: Random removal of majority samples
+    - undersampling_easy_data: Remove easy-to-classify majority samples
+    - smote: Synthetic minority oversampling
+    """
+    
+    @staticmethod
+    def oversampling_copy(
+        X: np.ndarray | pd.DataFrame,
+        y: np.ndarray | pd.Series,
+        random_state: int = 42,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Random oversampling by duplicating minority class samples.
+        
+        Args:
+            X: Feature matrix of shape (n_samples, n_features).
+            y: Label array of shape (n_samples,).
+            random_state: Random seed for reproducibility.
+        
+        Returns:
+            Tuple of (X_resampled, y_resampled) as numpy arrays.
+        """
+        from imblearn.over_sampling import RandomOverSampler
+        
+        # Convert to numpy if needed
+        X_arr: np.ndarray = X.values if isinstance(X, pd.DataFrame) else np.asarray(X)
+        y_arr: np.ndarray = y.values if isinstance(y, pd.Series) else np.asarray(y)
+        
+        sampler = RandomOverSampler(random_state=random_state)
+        X_resampled, y_resampled = sampler.fit_resample(X_arr, y_arr)
+        
+        return X_resampled, y_resampled
+    
+    @staticmethod
+    def oversampling_augmentation(
+        X: np.ndarray | pd.DataFrame,
+        y: np.ndarray | pd.Series,
+        noise_std: float = 0.1,
+        random_state: int = 42,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Oversampling with Gaussian noise augmentation for minority classes.
+        
+        Generates synthetic samples by adding small Gaussian noise to duplicated
+        minority samples, creating more diverse training data.
+        
+        Args:
+            X: Feature matrix of shape (n_samples, n_features).
+            y: Label array of shape (n_samples,).
+            noise_std: Standard deviation of Gaussian noise (relative to feature std).
+            random_state: Random seed for reproducibility.
+        
+        Returns:
+            Tuple of (X_resampled, y_resampled) as numpy arrays.
+        """
+        # Convert to numpy if needed
+        X_arr: np.ndarray = X.values if isinstance(X, pd.DataFrame) else np.asarray(X)
+        y_arr: np.ndarray = y.values if isinstance(y, pd.Series) else np.asarray(y)
+        
+        rng = np.random.RandomState(random_state)
+        
+        # Get class counts
+        unique_classes, class_counts = np.unique(y_arr, return_counts=True)
+        max_count: int = int(class_counts.max())
+        
+        X_resampled_list: list[np.ndarray] = [X_arr]
+        y_resampled_list: list[np.ndarray] = [y_arr]
+        
+        # Compute feature-wise std for noise scaling
+        feature_std: np.ndarray = np.std(X_arr, axis=0) + 1e-8
+        
+        for cls, count in zip(unique_classes, class_counts):
+            if count < max_count:
+                # Get minority class samples
+                cls_mask: np.ndarray = y_arr == cls
+                X_cls: np.ndarray = X_arr[cls_mask]
+                
+                # Number of samples to generate
+                n_generate: int = max_count - count
+                
+                # Random selection with replacement
+                indices: np.ndarray = rng.choice(len(X_cls), size=n_generate, replace=True)
+                X_new: np.ndarray = X_cls[indices].copy()
+                
+                # Add Gaussian noise scaled by feature std
+                noise: np.ndarray = rng.normal(0, noise_std, X_new.shape) * feature_std
+                X_new = X_new + noise
+                
+                X_resampled_list.append(X_new)
+                y_resampled_list.append(np.full(n_generate, cls))
+        
+        X_resampled: np.ndarray = np.vstack(X_resampled_list)
+        y_resampled: np.ndarray = np.concatenate(y_resampled_list)
+        
+        # Shuffle the resampled data
+        shuffle_idx: np.ndarray = rng.permutation(len(y_resampled))
+        
+        return X_resampled[shuffle_idx], y_resampled[shuffle_idx]
+    
+    @staticmethod
+    def undersampling_standard(
+        X: np.ndarray | pd.DataFrame,
+        y: np.ndarray | pd.Series,
+        random_state: int = 42,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Random undersampling to balance classes.
+        
+        Reduces majority classes to match the minority class size by random removal.
+        
+        Args:
+            X: Feature matrix of shape (n_samples, n_features).
+            y: Label array of shape (n_samples,).
+            random_state: Random seed for reproducibility.
+        
+        Returns:
+            Tuple of (X_resampled, y_resampled) as numpy arrays.
+        """
+        from imblearn.under_sampling import RandomUnderSampler
+        
+        # Convert to numpy if needed
+        X_arr: np.ndarray = X.values if isinstance(X, pd.DataFrame) else np.asarray(X)
+        y_arr: np.ndarray = y.values if isinstance(y, pd.Series) else np.asarray(y)
+        
+        sampler = RandomUnderSampler(random_state=random_state)
+        X_resampled, y_resampled = sampler.fit_resample(X_arr, y_arr)
+        
+        return X_resampled, y_resampled
+    
+    @staticmethod
+    def undersampling_easy_data(
+        X: np.ndarray | pd.DataFrame,
+        y: np.ndarray | pd.Series,
+        n_neighbors: int = 3,
+        random_state: int = 42,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Undersampling by removing easy-to-classify majority samples.
+        
+        Uses Edited Nearest Neighbors (ENN) to remove majority class samples
+        that are far from decision boundaries (easy samples), keeping harder
+        samples that are more informative for learning.
+        
+        Args:
+            X: Feature matrix of shape (n_samples, n_features).
+            y: Label array of shape (n_samples,).
+            n_neighbors: Number of neighbors for ENN algorithm.
+            random_state: Random seed for reproducibility.
+        
+        Returns:
+            Tuple of (X_resampled, y_resampled) as numpy arrays.
+        """
+        from imblearn.under_sampling import EditedNearestNeighbours
+        
+        # Convert to numpy if needed
+        X_arr: np.ndarray = X.values if isinstance(X, pd.DataFrame) else np.asarray(X)
+        y_arr: np.ndarray = y.values if isinstance(y, pd.Series) else np.asarray(y)
+        
+        sampler = EditedNearestNeighbours(n_neighbors=n_neighbors)
+        X_resampled, y_resampled = sampler.fit_resample(X_arr, y_arr)
+        
+        return X_resampled, y_resampled
+    
+    @staticmethod
+    def smote(
+        X: np.ndarray | pd.DataFrame,
+        y: np.ndarray | pd.Series,
+        random_state: int = 42,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """
+        SMOTE (Synthetic Minority Over-sampling Technique).
+        
+        Creates synthetic samples for minority classes by interpolating
+        between existing minority samples and their nearest neighbors.
+        
+        Args:
+            X: Feature matrix of shape (n_samples, n_features).
+            y: Label array of shape (n_samples,).
+            random_state: Random seed for reproducibility.
+        
+        Returns:
+            Tuple of (X_resampled, y_resampled) as numpy arrays.
+        """
+        from imblearn.over_sampling import SMOTE
+        
+        # Convert to numpy if needed
+        X_arr: np.ndarray = X.values if isinstance(X, pd.DataFrame) else np.asarray(X)
+        y_arr: np.ndarray = y.values if isinstance(y, pd.Series) else np.asarray(y)
+        
+        sampler = SMOTE(random_state=random_state)
+        X_resampled, y_resampled = sampler.fit_resample(X_arr, y_arr)
+        
+        return X_resampled, y_resampled
     
     @staticmethod
     def undersample(
@@ -612,9 +810,9 @@ class BalancingStrategy:
         random_state: int = 42,
     ) -> tuple[pd.DataFrame, pd.Series]:
         """
-        Random undersampling to balance classes.
+        Legacy method: Random undersampling returning DataFrames.
         
-        Reduces majority classes to match the minority class size.
+        Deprecated: Use undersampling_standard() for numpy arrays.
         """
         from imblearn.under_sampling import RandomUnderSampler
         
@@ -630,9 +828,9 @@ class BalancingStrategy:
         random_state: int = 42,
     ) -> tuple[pd.DataFrame, pd.Series]:
         """
-        Random oversampling to balance classes.
+        Legacy method: Random oversampling returning DataFrames.
         
-        Increases minority classes to match the majority class size.
+        Deprecated: Use oversampling_copy() for numpy arrays.
         """
         from imblearn.over_sampling import RandomOverSampler
         
@@ -642,35 +840,25 @@ class BalancingStrategy:
         return pd.DataFrame(X_resampled, columns=X.columns), pd.Series(y_resampled)
     
     @staticmethod
-    def smote(
-        X: pd.DataFrame,
-        y: pd.Series,
-        random_state: int = 42,
-    ) -> tuple[pd.DataFrame, pd.Series]:
-        """
-        SMOTE (Synthetic Minority Over-sampling Technique).
-        
-        Creates synthetic samples for minority classes.
-        """
-        from imblearn.over_sampling import SMOTE
-        
-        sampler = SMOTE(random_state=random_state)
-        X_resampled, y_resampled = sampler.fit_resample(X, y)
-        
-        return pd.DataFrame(X_resampled, columns=X.columns), pd.Series(y_resampled)
-    
-    @staticmethod
-    def get_class_weights(y: pd.Series) -> dict:
+    def get_class_weights(y: np.ndarray | pd.Series) -> dict[int, float]:
         """
         Compute class weights inversely proportional to class frequencies.
         
         Useful for weighted loss functions in ML models.
+        
+        Args:
+            y: Label array.
+        
+        Returns:
+            Dictionary mapping class labels to weights.
         """
         from sklearn.utils.class_weight import compute_class_weight
         
-        classes = np.unique(y)
-        weights = compute_class_weight("balanced", classes=classes, y=y)
-        return dict(zip(classes, weights))
+        y_arr: np.ndarray = y.values if isinstance(y, pd.Series) else np.asarray(y)
+        classes: np.ndarray = np.unique(y_arr)
+        weights: np.ndarray = compute_class_weight("balanced", classes=classes, y=y_arr)
+        
+        return dict(zip(classes.tolist(), weights.tolist()))
 
 
 # =============================================================================
@@ -714,4 +902,212 @@ def train_test_split_stratified(
         test_size=test_size,
         random_state=random_state,
         stratify=y,
+    )
+
+
+# =============================================================================
+# ML-Ready Data Loading
+# =============================================================================
+
+@dataclass
+class MLDataset:
+    """
+    Container for ML-ready dataset with train/val/test splits.
+    
+    All arrays are numpy ndarrays ready for model training.
+    
+    Attributes:
+        X_train: Training features of shape (n_train, n_features).
+        X_val: Validation features of shape (n_val, n_features).
+        X_test: Test features of shape (n_test, n_features).
+        y_train: Training labels of shape (n_train,).
+        y_val: Validation labels of shape (n_val,).
+        y_test: Test labels of shape (n_test,).
+        feature_names: List of feature column names.
+        label_encoder: Fitted LabelEncoder for label decoding.
+        scaler: Fitted StandardScaler for feature denormalization.
+        class_names: List of original class names in order.
+        n_classes: Number of unique classes.
+    """
+    X_train: np.ndarray
+    X_val: np.ndarray
+    X_test: np.ndarray
+    y_train: np.ndarray
+    y_val: np.ndarray
+    y_test: np.ndarray
+    feature_names: list[str]
+    label_encoder: LabelEncoder
+    scaler: StandardScaler | None
+    class_names: list[str]
+    n_classes: int
+
+
+def load_ml_ready_data(
+    dataset_type: Literal["physical", "network"] = "physical",
+    train_ratio: float = 0.7,
+    val_ratio: float = 0.15,
+    test_ratio: float = 0.15,
+    balancing: Literal[
+        "none",
+        "oversampling_copy",
+        "oversampling_augmentation",
+        "undersampling_standard",
+        "undersampling_easy_data",
+        "smote",
+    ] = "none",
+    normalize: bool = True,
+    n_samples: int | None = None,
+    random_state: int = 42,
+    noise_std: float = 0.1,
+    datasets: list[str] | None = None,
+    nrows: int | None = None,
+) -> MLDataset:
+    """
+    Load fully processed data ready for machine learning.
+    
+    Performs complete data pipeline:
+    1. Load raw data from CSV files
+    2. Clean and preprocess (handle missing values, encode labels)
+    3. Split into train/val/test sets (stratified)
+    4. Apply optional balancing strategy to training set only
+    5. Normalize features (optional)
+    6. Return numpy arrays ready for model training
+    
+    Args:
+        dataset_type: Type of dataset to load ('physical' or 'network').
+        train_ratio: Proportion of data for training (default 0.7).
+        val_ratio: Proportion of data for validation (default 0.15).
+        test_ratio: Proportion of data for testing (default 0.15).
+        balancing: Balancing strategy to apply to training set.
+        normalize: Whether to standardize features (fit on train, transform all).
+        n_samples: Limit total number of samples (useful for quick experiments).
+        random_state: Random seed for reproducibility.
+        noise_std: Noise std for oversampling_augmentation strategy.
+        datasets: Specific dataset files to load (e.g., ['normal', 'attack_1']).
+        nrows: For network data, limit rows per file.
+    
+    Returns:
+        MLDataset object containing all processed data and metadata.
+    
+    Raises:
+        ValueError: If ratios don't sum to ~1.0 or invalid parameters.
+    
+    Example:
+        >>> data = load_ml_ready_data(
+        ...     dataset_type="physical",
+        ...     balancing="oversampling_copy",
+        ...     normalize=True,
+        ... )
+        >>> print(f"Training samples: {len(data.X_train)}")
+        >>> print(f"Classes: {data.class_names}")
+    """
+    # Validate ratios
+    ratio_sum: float = train_ratio + val_ratio + test_ratio
+    if not (0.99 < ratio_sum < 1.01):
+        raise ValueError(f"Ratios must sum to 1.0, got {ratio_sum}")
+    
+    config = DataConfig()
+    
+    # Load raw data based on dataset type
+    if dataset_type == "physical":
+        loader = PhysicalDataLoader(config)
+        df: pd.DataFrame = loader.load(datasets=datasets)
+        label_col: str = "Label"
+        # Get features (exclude non-feature columns)
+        exclude_cols: set[str] = {"Time", "Label", "Label_n", "Lable_n", "source_file"}
+    else:
+        loader_net = NetworkDataLoader(config)
+        df = loader_net.load(datasets=datasets, nrows=nrows)
+        label_col = "label"
+        # Exclude non-numeric and label columns for network data
+        exclude_cols = {"Time", "label", "label_n", "source_file", 
+                        "mac_s", "mac_d", "ip_s", "ip_d", "proto", 
+                        "flags", "modbus_fn", "modbus_response"}
+    
+    # Limit samples if requested
+    if n_samples is not None and len(df) > n_samples:
+        df = df.sample(n=n_samples, random_state=random_state).reset_index(drop=True)
+    
+    # Clean data: drop rows with missing labels
+    df = df.dropna(subset=[label_col]).reset_index(drop=True)
+    
+    # Get feature columns (numeric only)
+    feature_cols: list[str] = [
+        c for c in df.columns 
+        if c not in exclude_cols and df[c].dtype in [np.int64, np.float64, np.int32, np.float32]
+    ]
+    
+    # Extract features and labels
+    X: pd.DataFrame = df[feature_cols].copy()
+    y: pd.Series = df[label_col].copy()
+    
+    # Handle missing values in features (fill with 0)
+    X = X.fillna(0)
+    
+    # Encode labels
+    label_encoder = LabelEncoder()
+    y_encoded: np.ndarray = label_encoder.fit_transform(y)
+    
+    # Store class information
+    class_names: list[str] = label_encoder.classes_.tolist()
+    n_classes: int = len(class_names)
+    
+    # Convert to numpy
+    X_arr: np.ndarray = X.values.astype(np.float64)
+    
+    # Split: first train+val vs test, then train vs val
+    test_size_relative: float = test_ratio
+    val_size_relative: float = val_ratio / (train_ratio + val_ratio)
+    
+    X_trainval, X_test, y_trainval, y_test = train_test_split(
+        X_arr, y_encoded,
+        test_size=test_size_relative,
+        random_state=random_state,
+        stratify=y_encoded,
+    )
+    
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_trainval, y_trainval,
+        test_size=val_size_relative,
+        random_state=random_state,
+        stratify=y_trainval,
+    )
+    
+    # Apply balancing to training set only
+    if balancing != "none":
+        balance_func = {
+            "oversampling_copy": BalancingStrategy.oversampling_copy,
+            "oversampling_augmentation": lambda X, y, rs: BalancingStrategy.oversampling_augmentation(
+                X, y, noise_std=noise_std, random_state=rs
+            ),
+            "undersampling_standard": BalancingStrategy.undersampling_standard,
+            "undersampling_easy_data": BalancingStrategy.undersampling_easy_data,
+            "smote": BalancingStrategy.smote,
+        }
+        
+        if balancing == "oversampling_augmentation":
+            X_train, y_train = balance_func[balancing](X_train, y_train, random_state)
+        else:
+            X_train, y_train = balance_func[balancing](X_train, y_train, random_state)
+    
+    # Normalize features (fit on train only)
+    scaler: StandardScaler | None = None
+    if normalize:
+        scaler = StandardScaler()
+        X_train = scaler.fit_transform(X_train)
+        X_val = scaler.transform(X_val)
+        X_test = scaler.transform(X_test)
+    
+    return MLDataset(
+        X_train=X_train,
+        X_val=X_val,
+        X_test=X_test,
+        y_train=y_train,
+        y_val=y_val,
+        y_test=y_test,
+        feature_names=feature_cols,
+        label_encoder=label_encoder,
+        scaler=scaler,
+        class_names=class_names,
+        n_classes=n_classes,
     )

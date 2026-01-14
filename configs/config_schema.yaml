@@ -1,0 +1,166 @@
+# Configuration Schema Documentation
+
+# ============================================================================
+# This file documents all available configuration options for the training
+# framework. Copy and modify the appropriate sections for your experiments.
+# ============================================================================
+
+# Data Configuration
+# ------------------
+data:
+  # Dataset type: 'physical' or 'network'
+  dataset_type: physical
+  
+  # Train/validation/test split ratios (must sum to 1.0)
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  
+  # Balancing strategy for training data:
+  #   - none: No balancing
+  #   - oversampling_copy: Random duplication of minority samples
+  #   - oversampling_augmentation: Duplication with Gaussian noise
+  #   - undersampling_standard: Random removal of majority samples
+  #   - undersampling_easy_data: Remove easy-to-classify samples (ENN)
+  #   - smote: Synthetic minority oversampling
+  balancing: none
+  
+  # Noise std for oversampling_augmentation (relative to feature std)
+  augmentation_noise_std: 0.1
+  
+  # Limit total samples (null = use all)
+  n_samples: null
+  
+  # For network data, limit rows per file
+  nrows_per_file: null
+  
+  # Specific datasets to load (null = all)
+  # Options: ['normal', 'attack_1', 'attack_2', 'attack_3', 'attack_4']
+  datasets: null
+  
+  # Whether to normalize features (StandardScaler)
+  normalize: true
+  
+  # Random seed for reproducibility
+  seed: 42
+
+
+# Model Configuration
+# -------------------
+model:
+  # Model name (one of):
+  #   - xgboost
+  #   - knn
+  #   - random_forest
+  #   - mlp
+  #   - tab_transformer
+  #   - ft_transformer
+  #   - attention_mlp
+  name: xgboost
+  
+  # Model-specific hyperparameters (see individual model docs)
+  hyperparameters: {}
+
+
+# Training Configuration
+# ----------------------
+training:
+  # Number of epochs (for neural networks)
+  epochs: 100
+  
+  # Batch size (for neural networks)
+  batch_size: 32
+  
+  # Optimizer: 'adam', 'adamw', 'sgd'
+  optimizer: adamw
+  
+  # Initial learning rate
+  learning_rate: 0.001
+  
+  # L2 regularization weight
+  weight_decay: 0.0001
+  
+  # Learning rate scheduler: 'cosine', 'step', 'none'
+  scheduler: cosine
+  
+  # Early stopping
+  early_stopping: true
+  patience: 10
+  
+  # Cross-validation (alternative to train/val/test split)
+  cross_validation: false
+  cv_folds: 5
+  
+  # Use GPU if available
+  use_gpu: true
+
+
+# Experiment Configuration
+# ------------------------
+experiment:
+  # Experiment name (used in folder naming)
+  name: default_experiment
+  
+  # Save sample-by-sample predictions/errors
+  save_predictions: true
+  
+  # Save training history (loss/accuracy per epoch)
+  save_history: true
+  
+  # Save best model weights
+  save_model: true
+
+
+# ============================================================================
+# Model-Specific Hyperparameters Reference
+# ============================================================================
+
+# XGBoost:
+#   n_estimators: 100
+#   max_depth: 6
+#   learning_rate: 0.1
+#   subsample: 1.0
+#   colsample_bytree: 1.0
+#   min_child_weight: 1
+#   gamma: 0
+#   reg_alpha: 0
+#   reg_lambda: 1
+#   use_gpu: false
+
+# KNN:
+#   n_neighbors: 5
+#   weights: 'uniform'  # or 'distance'
+#   algorithm: 'auto'   # 'ball_tree', 'kd_tree', 'brute'
+#   p: 2                # Minkowski distance power
+
+# Random Forest:
+#   n_estimators: 100
+#   max_depth: null     # null = unlimited
+#   min_samples_split: 2
+#   min_samples_leaf: 1
+#   max_features: 'sqrt'
+#   class_weight: null  # or 'balanced'
+
+# MLP:
+#   hidden_layers: [256, 128, 64]
+#   dropout: 0.3
+#   activation: 'relu'  # 'gelu', 'silu', 'tanh'
+
+# TabTransformer:
+#   d_model: 64
+#   n_heads: 4
+#   n_layers: 2
+#   dropout: 0.1
+
+# FT-Transformer:
+#   d_token: 96
+#   n_heads: 8
+#   n_layers: 3
+#   dropout: 0.1
+#   d_ff_mult: 4
+
+# AttentionMLP:
+#   hidden_dim: 64
+#   n_heads: 4
+#   mlp_layers: [128, 64]
+#   dropout: 0.2

@@ -1,0 +1,40 @@
+# Physical Data - Medium Config (Balanced Speed/Performance)
+# Reasonable training time with good results
+
+data:
+  dataset_type: physical
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  balancing: oversampling_copy  # Handle class imbalance
+  n_samples: null  # Use all samples
+  normalize: true
+  seed: 42
+
+model:
+  name: xgboost  # Change to desired model
+  hyperparameters:
+    # XGBoost medium config
+    n_estimators: 200
+    max_depth: 8
+    learning_rate: 0.1
+    subsample: 0.8
+    colsample_bytree: 0.8
+
+training:
+  # For neural networks
+  epochs: 50
+  batch_size: 32
+  learning_rate: 0.001
+  optimizer: adamw
+  weight_decay: 0.0001
+  scheduler: cosine
+  early_stopping: true
+  patience: 10
+  use_gpu: true
+
+experiment:
+  name: physical_medium
+  save_predictions: true
+  save_history: true
+  save_model: true
