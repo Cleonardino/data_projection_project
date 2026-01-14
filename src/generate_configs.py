@@ -97,16 +97,16 @@ TRAINING_SETTINGS: dict[str, dict[str, Any]] = {
 # Data settings per dataset type and size
 DATA_SETTINGS: dict[str, dict[str, dict[str, Any]]] = {
     "physical": {
-        "small": {"n_samples": 2000, "balancing": "none"},
+        "small": {"n_samples": None, "balancing": "oversampling_copy"},
         "medium": {"n_samples": None, "balancing": "oversampling_copy"},
         "large": {"n_samples": None, "balancing": "smote"},
     },
     "network": {
         # Network files have time-ordered data with attacks appearing after ~50k rows
         # Must load enough rows per file to capture attack labels ('anomaly')
-        "small": {"nrows_per_file": 100000, "balancing": "none"},  # ~500k rows total
-        "medium": {"nrows_per_file": 400000, "balancing": "oversampling_copy"},  # ~2.5M rows
-        "large": {"nrows_per_file": 600000, "balancing": "smote"},  # Full dataset
+        "small": {"nrows_per_file": 300000, "balancing": "oversampling_copy"},  # ~500k rows total
+        "medium": {"nrows_per_file": 500000, "balancing": "oversampling_copy"},  # ~2.5M rows
+        "large": {"nrows_per_file": 800000, "balancing": "smote"},  # Full dataset
     },
 }
 

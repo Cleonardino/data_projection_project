@@ -23,7 +23,7 @@ training:
   weight_decay: 0.0001
   scheduler: cosine
   early_stopping: true
-  patience: 10
+  patience: 5
   use_gpu: true
 experiment:
   name: physical_medium

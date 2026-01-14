@@ -6,10 +6,10 @@ data:
   train_ratio: 0.7
   val_ratio: 0.15
   test_ratio: 0.15
-  balancing: none
+  balancing: oversampling_copy
   normalize: true
   seed: 42
-  nrows_per_file: 100000
+  nrows_per_file: 300000
 model:
   name: tab_transformer
   hyperparameters:
