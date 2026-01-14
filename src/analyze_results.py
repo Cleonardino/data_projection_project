@@ -472,7 +472,7 @@ def generate_report(
 
         if len(leaderboard) > 0:
             # Simplified table for markdown
-            table_cols = ["Model", "Config", "Accuracy", "F1 (macro)", "Balanced Acc", "MCC", "Time (s)"]
+            table_cols = ["Experiment Name", "Accuracy", "F1 (macro)", "Balanced Acc", "MCC", "Time (s)"]
             
             # Map dataframe cols to table cols
             if "Dataset" in leaderboard.columns:
@@ -483,8 +483,7 @@ def generate_report(
 
             for rank, row in leaderboard.iterrows():
                 values = [
-                    str(row["Model"]),
-                    str(row["Config"]),
+                    f"`{row['Experiment']}`",
                     f"{row['Accuracy']:.4f}",
                     f"{row['F1 (macro)']:.4f}",
                     f"{row['Balanced Acc']:.4f}",

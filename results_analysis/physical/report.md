@@ -1,6 +1,6 @@
 # Analysis Report: Physical Dataset
 
-Generated: 2026-01-14 23:56:07
+Generated: 2026-01-15 00:01:47
 
 ---
 
@@ -8,15 +8,15 @@ Generated: 2026-01-14 23:56:07
 
 Ranked by F1 (macro) score on test set.
 
-| Rank | Model | Config | Accuracy | F1 (macro) | Balanced Acc | MCC | Time (s) |
-|------|---|---|---|---|---|---|---|
-| 1 | knn | physical_small | 0.9774 | 0.8007 | 0.8235 | 0.9402 | 0.0 |
-| 2 | transformer | physical_small | 0.9683 | 0.8001 | 0.8250 | 0.9188 | 40.7 |
-| 3 | mlp | physical_small | 0.9048 | 0.7259 | 0.8106 | 0.7946 | 35.2 |
-| 4 | mlp | physical_small | 0.8786 | 0.6889 | 0.7988 | 0.7515 | 22.7 |
-| 5 | transformer | physical_small | 0.8401 | 0.6593 | 0.7970 | 0.7004 | 56.1 |
-| 6 | xgboost | physical_small | 0.8676 | 0.6412 | 0.7906 | 0.7287 | 0.6 |
-| 7 | forest | physical_small | 0.6101 | 0.4687 | 0.7242 | 0.4779 | 0.2 |
+| Rank | Experiment Name | Accuracy | F1 (macro) | Balanced Acc | MCC | Time (s) |
+|------|---|---|---|---|---|---|
+| 1 | `2026-01-14_23-01-46_physical_small_knn` | 0.9774 | 0.8007 | 0.8235 | 0.9402 | 0.0 |
+| 2 | `2026-01-14_23-38-28_physical_small_tab_transformer` | 0.9683 | 0.8001 | 0.8250 | 0.9188 | 40.7 |
+| 3 | `2026-01-14_21-23-07_physical_small_attention_mlp` | 0.9048 | 0.7259 | 0.8106 | 0.7946 | 35.2 |
+| 4 | `2026-01-14_23-14-32_physical_small_mlp` | 0.8786 | 0.6889 | 0.7988 | 0.7515 | 22.7 |
+| 5 | `2026-01-14_22-00-45_physical_small_ft_transformer` | 0.8401 | 0.6593 | 0.7970 | 0.7004 | 56.1 |
+| 6 | `2026-01-14_23-39-57_physical_small_xgboost` | 0.8676 | 0.6412 | 0.7906 | 0.7287 | 0.6 |
+| 7 | `2026-01-14_23-16-06_physical_small_random_forest` | 0.6101 | 0.4687 | 0.7242 | 0.4779 | 0.2 |
 
 ---
 
@@ -80,9 +80,37 @@ Which models make similar mistakes? (Jaccard similarity of error sets)
 | transformer | 0.33 | 0.20 | 0.37 | 0.26 | 0.07 | 1.00 | 0.16 |
 | xgboost | 0.30 | 0.33 | 0.10 | 0.31 | 0.33 | 0.16 | 1.00 |
 
+![Correlation Heatmap](correlation/correlation_heatmap.png)
 
 ---
 
 ## 📈 Training Curves
 
-*No training curves available.*
+### 2026-01-14_21-23-07_physical_small_attention_mlp
+
+![2026-01-14_21-23-07_physical_small_attention_mlp](training_curves/2026-01-14_21-23-07_physical_small_attention_mlp.png)
+
+### 2026-01-14_22-00-45_physical_small_ft_transformer
+
+![2026-01-14_22-00-45_physical_small_ft_transformer](training_curves/2026-01-14_22-00-45_physical_small_ft_transformer.png)
+
+### 2026-01-14_23-01-46_physical_small_knn
+
+![2026-01-14_23-01-46_physical_small_knn](training_curves/2026-01-14_23-01-46_physical_small_knn.png)
+
+### 2026-01-14_23-14-32_physical_small_mlp
+
+![2026-01-14_23-14-32_physical_small_mlp](training_curves/2026-01-14_23-14-32_physical_small_mlp.png)
+
+### 2026-01-14_23-16-06_physical_small_random_forest
+
+![2026-01-14_23-16-06_physical_small_random_forest](training_curves/2026-01-14_23-16-06_physical_small_random_forest.png)
+
+### 2026-01-14_23-38-28_physical_small_tab_transformer
+
+![2026-01-14_23-38-28_physical_small_tab_transformer](training_curves/2026-01-14_23-38-28_physical_small_tab_transformer.png)
+
+### 2026-01-14_23-39-57_physical_small_xgboost
+
+![2026-01-14_23-39-57_physical_small_xgboost](training_curves/2026-01-14_23-39-57_physical_small_xgboost.png)
+
