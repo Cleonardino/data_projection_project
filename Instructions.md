@@ -104,16 +104,13 @@ Must include:
 
 ## 📝 Grading Rubric
 
-| Category          | Criterion                                                         | Points        |
-| ---               | ---                                                               | ---           |
-| **Presentation**  | Timing, Fluidity, Clarity                                         | 3             |
-| **Results**       | EDA, Algorithm Application, Performance Analysis, Data Handling   | 11            |
-| **Webapp**        | Completeness, User Experience, Pertinence                         | 6             |
-| **Bonus**         | Combined info / Novel methods                                     | 1             |
-| **Total**         |                                                                   | **20 (+1)**   |
+| Category         | Criterion                                                       | Points      |
+| ---------------- | --------------------------------------------------------------- | ----------- |
+| **Presentation** | Timing, Fluidity, Clarity                                       | 3           |
+| **Results**      | EDA, Algorithm Application, Performance Analysis, Data Handling | 11          |
+| **Webapp**       | Completeness, User Experience, Pertinence                       | 6           |
+| **Bonus**        | Combined info / Novel methods                                   | 1           |
+| **Total**        |                                                                 | **20 (+1)** |
 
 Note: The global mark is conditioned on the submission of all deliverables.
 
----
-
-Would you like me to help you draft an outline for the **Exploratory Data Analysis (EDA)** section of your report?

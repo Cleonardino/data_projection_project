@@ -3,3 +3,6 @@ dataset
 venv
 .venv
 _rapport/_minted-rapport
+*.pyc
+__pycache__
+*log*
