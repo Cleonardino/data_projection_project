@@ -367,20 +367,42 @@ class AttentionMLPModel(BaseModel):
     def predict(self, X: NDArray[np.float64]) -> NDArray[np.int64]:
         """Predict class labels."""
         self.model.eval()
+        
+        # Use batching for inference to avoid OOM
+        batch_size = self.hyperparameters.get("batch_size", 32) * 4  # Larger batch for inference
+        dataset = TensorDataset(torch.FloatTensor(X))
+        loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+        
+        predictions = []
+        
         with torch.no_grad():
-            X_tensor = torch.FloatTensor(X).to(self.device)
-            outputs = self.model(X_tensor)
-            _, predicted = outputs.max(1)
-            return predicted.cpu().numpy().astype(np.int64)
+            for batch in loader:
+                X_batch = batch[0].to(self.device)
+                outputs = self.model(X_batch)
+                _, predicted = outputs.max(1)
+                predictions.append(predicted.cpu().numpy())
+                
+        return np.concatenate(predictions).astype(np.int64)
 
     def predict_proba(self, X: NDArray[np.float64]) -> NDArray[np.float64]:
         """Predict class probabilities."""
         self.model.eval()
+        
+        # Use batching for inference to avoid OOM
+        batch_size = self.hyperparameters.get("batch_size", 32) * 4
+        dataset = TensorDataset(torch.FloatTensor(X))
+        loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+        
+        probabilities = []
+        
         with torch.no_grad():
-            X_tensor = torch.FloatTensor(X).to(self.device)
-            outputs = self.model(X_tensor)
-            probs = torch.softmax(outputs, dim=1)
-            return probs.cpu().numpy().astype(np.float64)
+            for batch in loader:
+                X_batch = batch[0].to(self.device)
+                outputs = self.model(X_batch)
+                probs = torch.softmax(outputs, dim=1)
+                probabilities.append(probs.cpu().numpy())
+                
+        return np.concatenate(probabilities, axis=0).astype(np.float64)
 
     def save(self, path: Path) -> None:
         """Save model to file."""

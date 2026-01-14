@@ -274,7 +274,18 @@ def train(
     print("\nEvaluating...")
     metrics_dict: dict[str, EvaluationMetrics] = {}
 
-    train_metrics: EvaluationMetrics = model.evaluate(dataset.X_train, dataset.y_train)
+    # Optimization: Subsample training evaluation for large datasets
+    if len(dataset.X_train) > 50000:
+        print(f"  Subsampling training evaluation ({len(dataset.X_train)} -> 50000) to save time/memory")
+        rng = np.random.RandomState(42)
+        indices = rng.choice(len(dataset.X_train), 50000, replace=False)
+        X_train_eval = dataset.X_train[indices]
+        y_train_eval = dataset.y_train[indices]
+    else:
+        X_train_eval = dataset.X_train
+        y_train_eval = dataset.y_train
+
+    train_metrics: EvaluationMetrics = model.evaluate(X_train_eval, y_train_eval)
     metrics_dict["train"] = train_metrics
     print_metrics("train", train_metrics)
 
@@ -289,7 +300,13 @@ def train(
     # Save sample-by-sample errors
     if exp_config.get("save_predictions", True):
         print("\nSaving sample-by-sample predictions...")
-        save_sample_errors(exp_path, model, dataset, "train", dataset.X_train, dataset.y_train)
+        
+        # Skip training set prediction saving if too large
+        if len(dataset.X_train) <= 50000:
+            save_sample_errors(exp_path, model, dataset, "train", dataset.X_train, dataset.y_train)
+        else:
+            print(f"  Skipping training set predictions (size {len(dataset.X_train)} > 50000)")
+            
         save_sample_errors(exp_path, model, dataset, "val", dataset.X_val, dataset.y_val)
         save_sample_errors(exp_path, model, dataset, "test", dataset.X_test, dataset.y_test)
 

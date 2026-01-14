@@ -2,19 +2,21 @@
 """
 analyze_results.py - Comprehensive Results Analysis
 
-Analyzes all experiment results and generates a markdown report with:
-- Model leaderboard (ranked by various metrics)
-- Training curves for all models
+Analyzes experiment results and generates separate markdown reports for each dataset:
+- Model leaderboard (ranked by F1 score)
+- Training curves
 - Error analysis (hardest classes/samples)
-- Model correlation matrix (which models make similar mistakes)
+- Model correlation matrix
 
 Output:
     results_analysis/
-    ├── report.md           # Full markdown report
-    ├── leaderboard.csv     # Metrics table
-    ├── training_curves/    # Training curve plots
-    ├── confusion_matrices/ # Per-model confusion matrices
-    └── correlation/        # Model correlation analysis
+    ├── network/            # Analysis for network dataset
+    │   ├── report.md
+    │   └── ...
+    ├── physical/           # Analysis for physical dataset
+    │   ├── report.md
+    │   └── ...
+    └── summary.md          # Global summary (optional)
 
 Usage:
     python src/analyze_results.py
@@ -26,6 +28,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import shutil
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -58,6 +61,9 @@ def load_experiment_results(experiments_dir: Path) -> list[dict[str, Any]]:
     """
     results: list[dict[str, Any]] = []
 
+    if not experiments_dir.exists():
+        return results
+
     for exp_folder in sorted(experiments_dir.iterdir()):
         if not exp_folder.is_dir():
             continue
@@ -69,15 +75,22 @@ def load_experiment_results(experiments_dir: Path) -> list[dict[str, Any]]:
             continue
 
         # Load metrics
-        with open(metrics_file, "r") as f:
-            metrics = json.load(f)
+        try:
+            with open(metrics_file, "r") as f:
+                metrics = json.load(f)
+        except json.JSONDecodeError:
+            print(f"Warning: Could not decode {metrics_file}")
+            continue
 
         # Load config if available
         config: dict[str, Any] = {}
         if config_file.exists():
             import yaml
-            with open(config_file, "r") as f:
-                config = yaml.safe_load(f)
+            try:
+                with open(config_file, "r") as f:
+                    config = yaml.safe_load(f)
+            except Exception:
+                pass
 
         # Parse folder name for metadata
         folder_name = exp_folder.name
@@ -88,6 +101,13 @@ def load_experiment_results(experiments_dir: Path) -> list[dict[str, Any]]:
 
         # Get dataset and size from config
         dataset_type = config.get("data", {}).get("dataset_type", "unknown")
+        # If dataset not in config, infer from folder name if possible (heuristic)
+        if dataset_type == "unknown":
+            for part in parts:
+                if part in ["network", "physical"]:
+                    dataset_type = part
+                    break
+        
         exp_name = config.get("experiment", {}).get("name", "unknown")
 
         results.append({
@@ -144,26 +164,28 @@ def create_leaderboard(results: list[dict[str, Any]]) -> pd.DataFrame:
     return df
 
 
-def load_error_files(experiments_dir: Path) -> dict[str, pd.DataFrame]:
+def load_error_files(results: list[dict[str, Any]]) -> dict[str, pd.DataFrame]:
     """
-    Load all test error CSVs from experiments.
+    Load test error CSVs for the specified experiments.
 
     Args:
-        experiments_dir: Directory containing experiment folders.
+        results: List of experiment result dicts to load errors for.
 
     Returns:
         Dict mapping experiment name to error DataFrame.
     """
     errors: dict[str, pd.DataFrame] = {}
 
-    for exp_folder in experiments_dir.iterdir():
-        if not exp_folder.is_dir():
-            continue
-
+    for exp in results:
+        exp_folder = Path(exp["experiment_folder"])
         error_file = exp_folder / "test_errors.csv"
+        
         if error_file.exists():
-            df = pd.read_csv(error_file)
-            errors[exp_folder.name] = df
+            try:
+                df = pd.read_csv(error_file)
+                errors[exp["folder_name"]] = df
+            except Exception as e:
+                print(f"Warning: Could not read errors for {exp['folder_name']}: {e}")
 
     return errors
 
@@ -196,6 +218,7 @@ def analyze_hard_samples(errors: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame,
             if not is_correct:
                 sample_errors[sample_idx]["total_wrong"] += 1
                 sample_errors[sample_idx]["models_wrong"].append(exp_name)
+                # Store sample metadata (assuming consistent across models for same dataset)
                 sample_errors[sample_idx]["true_label"] = true_label
                 sample_errors[sample_idx]["pred_labels"] = sample_errors[sample_idx].get("pred_labels", [])
                 sample_errors[sample_idx]["pred_labels"].append(row["pred_label"])
@@ -260,6 +283,14 @@ def compute_model_correlation(errors: dict[str, pd.DataFrame]) -> pd.DataFrame:
         all_samples.update(df["sample_idx"].tolist())
 
     sample_list = sorted(all_samples)
+    sampling_needed = False
+    
+    # Optimization: If we have > 50k samples, subsample for correlation to save memory/time
+    if len(sample_list) > 50000:
+        sampling_needed = True
+        rng = np.random.RandomState(42)
+        sample_list = sorted(rng.choice(sample_list, 50000, replace=False))
+        
     n_samples = len(sample_list)
     sample_to_idx = {s: i for i, s in enumerate(sample_list)}
 
@@ -268,6 +299,10 @@ def compute_model_correlation(errors: dict[str, pd.DataFrame]) -> pd.DataFrame:
 
     for i, exp_name in enumerate(exp_names):
         df = errors[exp_name]
+        # Filter df to only samples we care about
+        if sampling_needed:
+             df = df[df['sample_idx'].isin(sample_to_idx.keys())]
+             
         for _, row in df.iterrows():
             sample_idx = sample_to_idx.get(row["sample_idx"])
             if sample_idx is not None and not row["is_correct"]:
@@ -291,18 +326,25 @@ def compute_model_correlation(errors: dict[str, pd.DataFrame]) -> pd.DataFrame:
             else:
                 correlation[i, j] = 1.0 if i == j else 0.0
 
-    # Shorten experiment names for display
-    short_names = [name.split("_")[-1] for name in exp_names]
+    # Shorten experiment names for display: remove date/time prefix, keep model name
+    # Format: YYYY-MM-DD_HH-MM-SS_dataset_size_model -> model
+    short_names = []
+    for name in exp_names:
+        parts = name.split('_')
+        if len(parts) > 4:
+             short_names.append(parts[-1])
+        else:
+            short_names.append(name)
 
     return pd.DataFrame(correlation, index=short_names, columns=short_names)
 
 
-def plot_training_curves(experiments_dir: Path, output_dir: Path) -> list[Path]:
+def plot_training_curves(results: list[dict[str, Any]], output_dir: Path) -> list[Path]:
     """
-    Generate training curve plots for all experiments.
+    Generate training curve plots for specified experiments.
 
     Args:
-        experiments_dir: Directory containing experiments.
+        results: List of experiment dictionaries.
         output_dir: Output directory for plots.
 
     Returns:
@@ -314,11 +356,10 @@ def plot_training_curves(experiments_dir: Path, output_dir: Path) -> list[Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
     plots: list[Path] = []
 
-    for exp_folder in experiments_dir.iterdir():
-        if not exp_folder.is_dir():
-            continue
-
+    for exp in results:
+        exp_folder = Path(exp["experiment_folder"])
         history_file = exp_folder / "training_history.csv"
+        
         if not history_file.exists():
             continue
 
@@ -328,6 +369,9 @@ def plot_training_curves(experiments_dir: Path, output_dir: Path) -> list[Path]:
                 continue
 
             fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+            
+            # Use concise title
+            plot_title = f"{exp['model']} ({exp['dataset']})"
 
             # Loss plot
             if "train_loss" in df.columns and df["train_loss"].notna().any():
@@ -336,7 +380,7 @@ def plot_training_curves(experiments_dir: Path, output_dir: Path) -> list[Path]:
                 axes[0].plot(df["epoch"], df["val_loss"], label="Val", marker="o", markersize=2)
             axes[0].set_xlabel("Epoch")
             axes[0].set_ylabel("Loss")
-            axes[0].set_title(f"{exp_folder.name}\nLoss")
+            axes[0].set_title(f"{plot_title}\nLoss")
             axes[0].legend()
             axes[0].grid(True, alpha=0.3)
 
@@ -347,20 +391,20 @@ def plot_training_curves(experiments_dir: Path, output_dir: Path) -> list[Path]:
                 axes[1].plot(df["epoch"], df["val_accuracy"], label="Val", marker="o", markersize=2)
             axes[1].set_xlabel("Epoch")
             axes[1].set_ylabel("Accuracy")
-            axes[1].set_title("Accuracy")
+            axes[1].set_title(f"Accuracy")
             axes[1].legend()
             axes[1].grid(True, alpha=0.3)
 
             plt.tight_layout()
 
-            plot_path = output_dir / f"{exp_folder.name}.png"
+            plot_path = output_dir / f"{exp['folder_name']}.png"
             plt.savefig(plot_path, dpi=100)
             plt.close()
 
             plots.append(plot_path)
 
         except Exception as e:
-            print(f"Warning: Could not plot {exp_folder.name}: {e}")
+            print(f"Warning: Could not plot {exp['folder_name']}: {e}")
 
     return plots
 
@@ -370,7 +414,7 @@ def plot_correlation_matrix(correlation_df: pd.DataFrame, output_path: Path) -> 
     if not HAS_PLOTTING or correlation_df.empty:
         return
 
-    fig, ax = plt.subplots(figsize=(12, 10))
+    fig, ax = plt.subplots(figsize=(10, 8))
 
     sns.heatmap(
         correlation_df,
@@ -391,6 +435,7 @@ def plot_correlation_matrix(correlation_df: pd.DataFrame, output_path: Path) -> 
 
 def generate_report(
     output_dir: Path,
+    dataset_name: str,
     leaderboard: pd.DataFrame,
     hard_samples: pd.DataFrame,
     hard_classes: pd.DataFrame,
@@ -398,10 +443,11 @@ def generate_report(
     training_curves: list[Path],
 ) -> Path:
     """
-    Generate comprehensive markdown report.
+    Generate comprehensive markdown report for a dataset.
 
     Args:
         output_dir: Output directory.
+        dataset_name: Name of the dataset (e.g. "network").
         leaderboard: Leaderboard DataFrame.
         hard_samples: Hard samples DataFrame.
         hard_classes: Hard classes DataFrame.
@@ -412,10 +458,11 @@ def generate_report(
         Path to generated report.
     """
     report_path = output_dir / "report.md"
+    dataset_title = dataset_name.capitalize()
 
     with open(report_path, "w") as f:
         # Header
-        f.write("# ML Experiment Results Analysis\n\n")
+        f.write(f"# Analysis Report: {dataset_title} Dataset\n\n")
         f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
         f.write("---\n\n")
 
@@ -425,16 +472,19 @@ def generate_report(
 
         if len(leaderboard) > 0:
             # Simplified table for markdown
-            table_cols = ["Model", "Dataset", "Config", "Accuracy", "F1 (macro)", "Balanced Acc", "MCC", "Time (s)"]
+            table_cols = ["Model", "Config", "Accuracy", "F1 (macro)", "Balanced Acc", "MCC", "Time (s)"]
+            
+            # Map dataframe cols to table cols
+            if "Dataset" in leaderboard.columns:
+                leaderboard = leaderboard.drop(columns=["Dataset"])
 
             f.write("| Rank | " + " | ".join(table_cols) + " |\n")
             f.write("|------|" + "|".join(["---" for _ in table_cols]) + "|\n")
 
             for rank, row in leaderboard.iterrows():
                 values = [
-                    row["Model"],
-                    row["Dataset"],
-                    row["Config"],
+                    str(row["Model"]),
+                    str(row["Config"]),
                     f"{row['Accuracy']:.4f}",
                     f"{row['F1 (macro)']:.4f}",
                     f"{row['Balanced Acc']:.4f}",
@@ -443,7 +493,7 @@ def generate_report(
                 ]
                 f.write(f"| {rank} | " + " | ".join(values) + " |\n")
         else:
-            f.write("*No experiments found.*\n")
+            f.write("*No experiments found for this dataset.*\n")
 
         f.write("\n---\n\n")
 
@@ -514,12 +564,73 @@ def generate_report(
     return report_path
 
 
+def run_analysis_for_dataset(
+    dataset_name: str, 
+    results: list[dict[str, Any]], 
+    base_output_dir: Path
+) -> None:
+    """
+    Run full analysis pipeline for a single dataset.
+    """
+    print(f"\n--- Analyzing Dataset: {dataset_name} ({len(results)} experiments) ---")
+    
+    # Create output directory for this dataset
+    output_dir = base_output_dir / dataset_name
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    curves_dir = output_dir / "training_curves"
+    correlation_dir = output_dir / "correlation"
+    curves_dir.mkdir(exist_ok=True)
+    correlation_dir.mkdir(exist_ok=True)
+
+    # 1. leaderboard
+    print(f"Creating leaderboard for {dataset_name}...")
+    leaderboard = create_leaderboard(results)
+    leaderboard.to_csv(output_dir / "leaderboard.csv", index=True)
+    
+    # 2. errors
+    print(f"Loading errors for {dataset_name}...")
+    errors = load_error_files(results)
+    
+    # 3. hard samples
+    print(f"Analyzing hard samples for {dataset_name}...")
+    hard_samples, hard_classes = analyze_hard_samples(errors)
+    if len(hard_samples) > 0:
+        hard_samples.to_csv(output_dir / "hard_samples.csv", index=False)
+    if len(hard_classes) > 0:
+        hard_classes.to_csv(output_dir / "hard_classes.csv", index=False)
+        
+    # 4. correlation
+    print(f"Computing correlation for {dataset_name}...")
+    correlation = compute_model_correlation(errors)
+    if len(correlation) > 0:
+        correlation.to_csv(correlation_dir / "correlation_matrix.csv")
+        plot_correlation_matrix(correlation, correlation_dir / "correlation_heatmap.png")
+        
+    # 5. curves
+    print(f"Plotting curves for {dataset_name}...")
+    training_curves = plot_training_curves(results, curves_dir)
+    
+    # 6. report
+    print(f"Generating report for {dataset_name}...")
+    report_path = generate_report(
+        output_dir,
+        dataset_name,
+        leaderboard,
+        hard_samples,
+        hard_classes,
+        correlation,
+        training_curves,
+    )
+    print(f"✅ Report generated: {report_path}")
+
+
 def analyze_results(
     experiments_dir: Path,
     output_dir: Path,
 ) -> None:
     """
-    Run full analysis and generate report.
+    Run full analysis and generate reports.
 
     Args:
         experiments_dir: Directory containing experiments.
@@ -532,65 +643,30 @@ def analyze_results(
     print(f"Output directory: {output_dir}")
     print()
 
-    # Create output directories
-    output_dir.mkdir(parents=True, exist_ok=True)
-    curves_dir = output_dir / "training_curves"
-    correlation_dir = output_dir / "correlation"
-    curves_dir.mkdir(exist_ok=True)
-    correlation_dir.mkdir(exist_ok=True)
+    # Load all results
+    print("Loading all experiment results...")
+    all_results = load_experiment_results(experiments_dir)
+    print(f"  Found {len(all_results)} total experiments")
 
-    # Load results
-    print("Loading experiment results...")
-    results = load_experiment_results(experiments_dir)
-    print(f"  Found {len(results)} experiments")
+    if not all_results:
+        print("No experiments found.")
+        return
 
-    # Create leaderboard
-    print("Creating leaderboard...")
-    leaderboard = create_leaderboard(results)
-    leaderboard.to_csv(output_dir / "leaderboard.csv", index=True)
+    # Group by dataset
+    grouped_results: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for res in all_results:
+        dataset = res.get("dataset", "unknown")
+        grouped_results[dataset].append(res)
+    
+    print(f"  Datasets found: {list(grouped_results.keys())}")
 
-    # Load errors
-    print("Loading error files...")
-    errors = load_error_files(experiments_dir)
-    print(f"  Found {len(errors)} error files")
-
-    # Analyze hard samples
-    print("Analyzing hard samples...")
-    hard_samples, hard_classes = analyze_hard_samples(errors)
-
-    if len(hard_samples) > 0:
-        hard_samples.to_csv(output_dir / "hard_samples.csv", index=False)
-    if len(hard_classes) > 0:
-        hard_classes.to_csv(output_dir / "hard_classes.csv", index=False)
-
-    # Compute correlation
-    print("Computing model correlation...")
-    correlation = compute_model_correlation(errors)
-
-    if len(correlation) > 0:
-        correlation.to_csv(correlation_dir / "correlation_matrix.csv")
-        plot_correlation_matrix(correlation, correlation_dir / "correlation_heatmap.png")
-
-    # Plot training curves
-    print("Generating training curve plots...")
-    training_curves = plot_training_curves(experiments_dir, curves_dir)
-    print(f"  Generated {len(training_curves)} plots")
-
-    # Generate report
-    print("Generating markdown report...")
-    report_path = generate_report(
-        output_dir,
-        leaderboard,
-        hard_samples,
-        hard_classes,
-        correlation,
-        training_curves,
-    )
+    # Run analysis for each dataset
+    for dataset, results in grouped_results.items():
+        run_analysis_for_dataset(dataset, results, output_dir)
 
     print()
     print("=" * 60)
     print(f"✅ Analysis complete!")
-    print(f"   Report: {report_path}")
     print("=" * 60)
 
 

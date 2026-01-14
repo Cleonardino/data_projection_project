@@ -1,0 +1,5 @@
+class,total_predictions,total_errors,error_rate
+scan,3,1,0.3333333333333333
+normal,622740,90545,0.14539775829399107
+physical fault,52227,964,0.01845788576789783
+anomaly,30,0,0.0

@@ -97,8 +97,15 @@ class KNNModel(BaseModel):
         history.training_time_seconds = time.time() - start_time
 
         # Compute accuracies
-        train_pred: NDArray[np.int64] = self.model.predict(X_train)
-        train_acc: float = float(np.mean(train_pred == y_train))
+        # Optimization: Subsample for large datasets to avoid O(N^2) complexity/timeout
+        eval_indices = np.arange(len(X_train))
+        if len(X_train) > 50000:
+            print(f"  Note: Subsampling training set for KNN accuracy ({len(X_train)} -> 50000)")
+            rng = np.random.RandomState(42)
+            eval_indices = rng.choice(eval_indices, 50000, replace=False)
+            
+        train_pred: NDArray[np.int64] = self.model.predict(X_train[eval_indices])
+        train_acc: float = float(np.mean(train_pred == y_train[eval_indices]))
         history.train_accuracy = [train_acc]
 
         if X_val is not None and y_val is not None:
