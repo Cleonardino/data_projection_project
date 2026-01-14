@@ -9,7 +9,6 @@ data:
   balancing: smote
   normalize: true
   seed: 42
-  nrows_per_file: 20000
 model:
   name: random_forest
   hyperparameters:

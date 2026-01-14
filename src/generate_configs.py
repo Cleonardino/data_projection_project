@@ -102,9 +102,11 @@ DATA_SETTINGS: dict[str, dict[str, dict[str, Any]]] = {
         "large": {"n_samples": None, "balancing": "smote"},
     },
     "network": {
-        "small": {"nrows_per_file": 1000, "balancing": "none"},
-        "medium": {"nrows_per_file": 5000, "balancing": "oversampling_copy"},
-        "large": {"nrows_per_file": 20000, "balancing": "smote"},
+        # Network files have time-ordered data with attacks appearing after ~50k rows
+        # Must load enough rows per file to capture attack labels ('anomaly')
+        "small": {"nrows_per_file": 100000, "balancing": "none"},  # ~500k rows total
+        "medium": {"nrows_per_file": 500000, "balancing": "oversampling_copy"},  # ~2.5M rows
+        "large": {"nrows_per_file": None, "balancing": "smote"},  # Full dataset
     },
 }
 

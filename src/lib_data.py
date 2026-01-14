@@ -209,6 +209,8 @@ class NetworkDataLoader:
                 usecols=usecols,
                 low_memory=self.config.low_memory,
             )
+            # Strip whitespace from column names (attack files have ' label' instead of 'label')
+            df.columns = df.columns.str.strip()
             df["source_file"] = dataset
             dfs.append(df)
 
@@ -243,40 +245,129 @@ class NetworkDataLoader:
         datasets: Optional[list[str]] = None,
         n_per_file: int = 1000,
         random_state: int = 42,
+        stratify: bool = True,
+        label_col: str = "label",
     ) -> pd.DataFrame:
         """
-        Random sample from each dataset file.
+        Memory-efficient stratified random sample from each dataset file.
+
+        When stratify=True, performs a two-pass approach:
+        1. First pass: Read only label column to get class distribution
+        2. Second pass: Sample proportionally from each class
+
+        This ensures balanced class representation even when attack data
+        appears later in time-ordered network files.
 
         Args:
             datasets: Dataset names to sample from.
             n_per_file: Number of rows to sample per file.
             random_state: Random seed for reproducibility.
+            stratify: If True, sample proportionally from each class.
+            label_col: Column name containing class labels.
 
         Returns:
-            Combined sampled DataFrame.
+            Combined sampled DataFrame with balanced class representation.
         """
         if datasets is None:
             datasets = list(self.config.network_files.keys())
 
+        rng = np.random.RandomState(random_state)
         samples = []
+
         for dataset in datasets:
             path = self.config.get_network_path(dataset)
-            # Get total rows (fast with pandas)
-            total_rows = sum(1 for _ in open(path)) - 1  # subtract header
 
-            if total_rows <= n_per_file:
-                df = pd.read_csv(path)
-            else:
-                # Random skip rows
-                skip_idx = sorted(
-                    np.random.RandomState(random_state).choice(
-                        range(1, total_rows + 1),
-                        size=total_rows - n_per_file,
-                        replace=False
+            if not stratify:
+                # Original random sampling (non-stratified)
+                total_rows = sum(1 for _ in open(path)) - 1
+                if total_rows <= n_per_file:
+                    df = pd.read_csv(path)
+                else:
+                    skip_idx = sorted(
+                        rng.choice(
+                            range(1, total_rows + 1),
+                            size=total_rows - n_per_file,
+                            replace=False
+                        )
                     )
-                )
-                df = pd.read_csv(path, skiprows=skip_idx)
+                    df = pd.read_csv(path, skiprows=skip_idx)
+            else:
+                # Stratified sampling: ensure proportional class representation
+                # Pass 1: Read only label column to get class distribution
+                # Try both clean and whitespace-prefixed column names
+                try:
+                    label_df = pd.read_csv(path, usecols=[label_col])
+                except ValueError:
+                    # Column might have leading whitespace (e.g., ' label')
+                    try:
+                        label_df = pd.read_csv(path, usecols=[f" {label_col}"])
+                    except ValueError:
+                        # Fall back to reading header and finding the right column
+                        header = pd.read_csv(path, nrows=0)
+                        matching_cols = [c for c in header.columns if c.strip() == label_col]
+                        if matching_cols:
+                            label_df = pd.read_csv(path, usecols=[matching_cols[0]])
+                        else:
+                            raise ValueError(f"Label column '{label_col}' not found in {path}")
+                label_df.columns = label_df.columns.str.strip()
 
+                if label_col not in label_df.columns:
+                    # Try finding the column after stripping
+                    possible_cols = [c for c in label_df.columns if c.strip() == label_col]
+                    if possible_cols:
+                        label_df = label_df.rename(columns={possible_cols[0]: label_col})
+
+                labels = label_df[label_col].values if label_col in label_df.columns else label_df.iloc[:, 0].values
+                total_rows = len(labels)
+
+                if total_rows <= n_per_file:
+                    # Load entire file if small enough
+                    df = pd.read_csv(path)
+                else:
+                    # Get class distribution and sample proportionally
+                    unique_classes, class_counts = np.unique(labels, return_counts=True)
+                    class_ratios = class_counts / total_rows
+
+                    # Calculate samples per class (at least 1 sample per class)
+                    samples_per_class = np.maximum(1, (class_ratios * n_per_file).astype(int))
+
+                    # Adjust to match n_per_file exactly
+                    while samples_per_class.sum() > n_per_file:
+                        max_idx = samples_per_class.argmax()
+                        samples_per_class[max_idx] -= 1
+                    while samples_per_class.sum() < n_per_file and samples_per_class.sum() < total_rows:
+                        # Add to class with lowest current ratio
+                        min_ratio_diff = np.inf
+                        best_idx = 0
+                        for i, (count, target) in enumerate(zip(class_counts, samples_per_class)):
+                            if target < count:
+                                ratio_diff = target / count if count > 0 else np.inf
+                                if ratio_diff < min_ratio_diff:
+                                    min_ratio_diff = ratio_diff
+                                    best_idx = i
+                        samples_per_class[best_idx] += 1
+
+                    # Pass 2: Sample specific indices per class
+                    selected_indices = []
+                    for cls, n_samples in zip(unique_classes, samples_per_class):
+                        class_indices = np.where(labels == cls)[0]
+                        if len(class_indices) <= n_samples:
+                            selected_indices.extend(class_indices.tolist())
+                        else:
+                            sampled = rng.choice(class_indices, size=n_samples, replace=False)
+                            selected_indices.extend(sampled.tolist())
+
+                    selected_indices = sorted(selected_indices)
+
+                    # Create skiprows: all rows except selected (add 1 for header)
+                    all_indices = set(range(total_rows))
+                    skip_indices = all_indices - set(selected_indices)
+                    skip_rows = sorted([i + 1 for i in skip_indices])  # +1 for header
+
+                    df = pd.read_csv(path, skiprows=skip_rows)
+
+            # Strip whitespace from column names (attack files have ' label')
+            df.columns = df.columns.str.strip()
             df["source_file"] = dataset
             samples.append(df)
 
@@ -1074,7 +1165,8 @@ def load_ml_ready_data(
     )
 
     # Apply balancing to training set only
-    if balancing != "none":
+    n_unique_classes: int = len(np.unique(y_train))
+    if balancing != "none" and n_unique_classes > 1:
         balance_func = {
             "oversampling_copy": BalancingStrategy.oversampling_copy,
             "oversampling_augmentation": lambda X, y, rs: BalancingStrategy.oversampling_augmentation(
@@ -1085,10 +1177,14 @@ def load_ml_ready_data(
             "smote": BalancingStrategy.smote,
         }
 
-        if balancing == "oversampling_augmentation":
+        if balancing in balance_func:
             X_train, y_train = balance_func[balancing](X_train, y_train, random_state)
-        else:
-            X_train, y_train = balance_func[balancing](X_train, y_train, random_state)
+    elif balancing != "none" and n_unique_classes <= 1:
+        import warnings
+        warnings.warn(
+            f"Balancing strategy '{balancing}' skipped: only {n_unique_classes} class(es) in training data. "
+            "Increase n_samples or nrows_per_file to include more classes."
+        )
 
     # Normalize features (fit on train only)
     scaler: StandardScaler | None = None

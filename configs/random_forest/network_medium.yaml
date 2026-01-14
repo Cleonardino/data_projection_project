@@ -9,7 +9,7 @@ data:
   balancing: oversampling_copy
   normalize: true
   seed: 42
-  nrows_per_file: 5000
+  nrows_per_file: 500000
 model:
   name: random_forest
   hyperparameters:
