@@ -130,11 +130,12 @@ def run_training(
     ]
 
     try:
+        # Start subprocess, allowing it to write directly to stdout/stderr
+        # This enables progress bars to be visible
         result = subprocess.run(
             cmd,
             cwd=train_script.parent.parent,
-            capture_output=True,
-            text=True,
+            check=False,  # We check returncode manually
             timeout=timeout,
         )
 
@@ -143,8 +144,7 @@ def run_training(
         if result.returncode == 0:
             return True, duration, ""
         else:
-            error_msg = result.stderr[:500] if result.stderr else "Unknown error"
-            return False, duration, error_msg
+            return False, duration, "Check console output for error details"
 
     except subprocess.TimeoutExpired:
         return False, timeout, f"Timeout after {timeout}s"
