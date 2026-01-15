@@ -8,6 +8,6 @@ xgboost
 matplotlib
 seaborn
 imblearn
-
+streamlit
 
 
