@@ -2,6 +2,8 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 
+# https://docs.streamlit.io/develop/tutorials/multipage/dynamic-navigation
+
 # dataframe = np.random.randn(10, 20)
 # st.dataframe(dataframe)
 
