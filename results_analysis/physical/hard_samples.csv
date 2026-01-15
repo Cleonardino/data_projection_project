@@ -1,51 +1,51 @@
 sample_idx,true_label,times_wrong,wrong_by_models,common_wrong_pred
-5,normal,7,7,MITM
-35,normal,7,7,MITM
-598,normal,7,7,scan
-864,normal,7,7,scan
-1257,normal,7,7,physical fault
-892,normal,7,7,DoS
-1104,normal,7,7,MITM
-927,normal,7,7,MITM
-848,normal,7,7,physical fault
-768,normal,7,7,physical fault
-1549,scan,7,7,normal
-466,normal,7,7,DoS
-36,scan,7,7,normal
-210,normal,7,7,MITM
-1203,normal,7,7,scan
-1559,normal,7,7,physical fault
-1628,normal,7,7,MITM
-790,normal,6,6,scan
-947,MITM,6,6,scan
-940,normal,6,6,physical fault
-891,normal,6,6,MITM
-1095,normal,6,6,scan
-507,normal,6,6,MITM
-883,normal,6,6,MITM
+36,scan,10,10,normal
+768,normal,10,10,physical fault
+1257,normal,10,10,physical fault
+927,normal,10,10,MITM
+848,normal,10,10,physical fault
+1549,scan,10,10,normal
+34,normal,9,9,MITM
+1104,normal,9,9,MITM
+1628,normal,9,9,MITM
+35,normal,9,9,MITM
+5,normal,9,9,MITM
+210,normal,9,9,MITM
+99,normal,8,8,MITM
+1203,normal,8,8,scan
+1559,normal,8,8,physical fault
+864,normal,8,8,scan
+466,normal,8,8,DoS
+160,normal,8,8,MITM
+113,normal,8,8,MITM
+892,normal,8,8,DoS
+598,normal,8,8,scan
+265,normal,7,7,MITM
+482,normal,7,7,MITM
+432,normal,7,7,MITM
+1304,normal,7,7,MITM
+1158,normal,7,7,MITM
+168,normal,7,7,MITM
+883,normal,7,7,MITM
+715,normal,7,7,MITM
+578,normal,7,7,MITM
+1567,normal,7,7,MITM
+1451,normal,7,7,nomal
+1027,MITM,7,7,scan
+891,normal,7,7,MITM
+1047,normal,7,7,physical fault
+940,normal,7,7,physical fault
+299,normal,7,7,MITM
+270,normal,7,7,MITM
+790,normal,7,7,scan
+507,normal,7,7,MITM
 355,normal,6,6,scan
-1304,normal,6,6,MITM
-1158,normal,6,6,MITM
-265,normal,6,6,MITM
-299,normal,6,6,MITM
-34,normal,6,6,MITM
-578,normal,6,6,MITM
-482,normal,6,6,MITM
-160,normal,6,6,MITM
-432,normal,6,6,MITM
-1027,MITM,6,6,scan
-1567,normal,6,6,MITM
-1451,normal,6,6,nomal
-168,normal,6,6,MITM
-113,normal,6,6,MITM
-99,normal,6,6,MITM
+478,normal,6,6,physical fault
+947,MITM,6,6,scan
+76,normal,6,6,MITM
 1172,normal,6,6,MITM
-1047,normal,6,6,physical fault
-715,normal,6,6,MITM
-270,normal,6,6,MITM
-595,normal,5,5,scan
-873,normal,5,5,scan
-1209,normal,5,5,scan
-315,normal,5,5,MITM
-1249,normal,5,5,MITM
-1220,normal,5,5,MITM
+945,normal,6,6,MITM
+784,normal,6,6,MITM
+347,normal,6,6,physical fault
+1126,normal,6,6,MITM
+1437,normal,6,6,MITM
