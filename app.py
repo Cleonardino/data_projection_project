@@ -2,15 +2,19 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 
-import streamlit as st
-
-
-home = st.Page("app/home.py", title="Home", icon=":material/home:")
-
-import streamlit as st
-
 st.header("Admin 1")
 st.write(f"You are logged in as coucou")
+
+navigation = st.navigation(
+	{
+		"Home": [
+			st.Page("app/home.py", title="Home", icon=":material/home:"),
+   			st.Page("app/data_overview.py", title="Home", icon=":material/database_search:")
+		]
+	}
+)
+
+navigation.run()
 
 # https://fonts.google.com/icons?icon.set=Material+Symbols&icon.style=Rounded
 # https://docs.streamlit.io/develop/tutorials/multipage/dynamic-navigation
