@@ -1,6 +1,6 @@
 # Cyber-Physical Systems Benchmarking
 
-A modular benchmarking framework for analyzing machine learning models on Cyber-Physical System (CPS) datasets. Supports both physical sensor data and network traffic data.
+A benchmark for analyzing machine learning models on Cyber-Physical System (CPS) datasets. Supports both physical sensor data and network traffic data.
 
 ## Project Structure
 
@@ -28,9 +28,11 @@ A modular benchmarking framework for analyzing machine learning models on Cyber-
    - `torch`
    - `tqdm`
    - `pyyaml`
-   - `imblearn` (for oversampling / undersampling)
-   - `xgboost` (optional, for XGBoost model)
-   - `matplotlib`, `seaborn` (optional, for analysis plots)
+   - `imblearn`
+   - `xgboost`
+   - `matplotlib`
+   - `seaborn`
+   - `streamlit`
 2. **Data**: Place your datasets in the `dataset/` directory:
 
    - Physical data: `dataset/Physical dataset/*.csv`
