@@ -39,8 +39,8 @@
 \newcommand{\ttt}[1]{\texttt{#1}}
 
 \newcommand{\myparagraph}[1]{%
-  \paragraph{#1} \mbox{} \\
-  \vspace{-1em} % Ajusté à mon goût
+  	\paragraph{#1} \mbox{} \\
+  	\vspace{-1em}
 }
 
 \setlist[itemize,1]{label={\textbullet}}
@@ -64,22 +64,19 @@
 
 %----------- Initialisation -------------------
         
-% 1️⃣ Crée la page de garde SANS marges fancy
 \fairepagedegarde
-
-% 2️⃣ Maintenant on applique les marges/fancyhdr pour le reste du document
 \fairemarges
 
 \newpage
-\tabledematieres %Créer la table de matières
 
-% Table des figures
+\tabledematieres
 \listoffigures
 
 \section*{Abréviations employées}
 
 \begin{itemize}
     \item \textbf{CNN} : Convolutional Neural Network
+	\item \textbf{KNN} : K-Nearest Neighbors
 \end{itemize}
 
 % % Table des tableaux (si nécessaire)
@@ -107,7 +104,87 @@ TO COMPLETE
 
 \section{Application des algorithmes}
 
+\subsection{KNN}
+
+\subsection{Random Forest}
+
+\subsection{XGBoost}
+
+\subsection{MLP}
+
+\subsection{Modèles de transformers}
+
+\subsubsection{Tab Transformer}
+
+\subsubsection{FT Transformer}
+
+\subsubsection{MLP avec attention}
+
 \section{Évaluation}
+
+\subsection{Données physiques}
+
+D'après les résultats présentés dans le tableau \ref{tab:physical_small_results}, le modèle \texttt{small\_knn} obtient les meilleures performances sur le jeu de données \texttt{physical\_small}, avec une précision de \textbf{97,74\%}, un F1-macro de \textbf{0,8007}, une précision équilibrée de \textbf{0,8235} et un MCC de \textbf{0,9402}. Le temps d'entraînement est également très faible (quasi-instantané), ce qui en fait un choix efficace pour ce type de données.
+
+\begin{table}[H]
+    \centering
+	\resizebox{\textwidth}{!}{%
+    \begin{tabular}{c l c c c c c}
+    	\hline
+    	\textbf{Rang} & \textbf{Modèle} & \textbf{Précision} & \textbf{F1 (macro)} & \textbf{Précision équilibrée} & \textbf{MCC} & \textbf{Temps (s)} \\
+    	\hline
+    	1 & \texttt{small\_knn} & 0.9774 & 0.8007 & 0.8235 & 0.9402 & 0.0 \\
+    	2 & \texttt{small\_tab\_transformer} & 0.9683 & 0.8001 & 0.8250 & 0.9188 & 40.7 \\
+    	3 & \texttt{small\_attention\_mlp} & 0.9048 & 0.7259 & 0.8106 & 0.7946 & 35.2 \\
+    	4 & \texttt{small\_mlp} & 0.8786 & 0.6889 & 0.7988 & 0.7515 & 22.7 \\
+    	5 & \texttt{small\_ft\_transformer} & 0.8401 & 0.6593 & 0.7970 & 0.7004 & 56.1 \\
+    	6 & \texttt{small\_xgboost} & 0.8676 & 0.6412 & 0.7906 & 0.7287 & 0.6 \\
+    	7 & \texttt{small\_random\_forest} & 0.6101 & 0.4687 & 0.7242 & 0.4779 & 0.2 \\
+    	\hline
+    \end{tabular}
+	}
+	\caption{Comparaison des expériences sur le jeu de données physiques physical\_small}
+    \label{tab:physical_small_results}
+\end{table}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{images/correlation_heatmap.png}
+	\caption{Matrice de corrélation des erreurs entre les modèles}
+	\label{fig:corrmat}
+\end{figure}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{c l c l}
+		\hline
+		\textbf{Entrée} & \textbf{Label réel} & \textbf{Nombre d'erreurs} & \textbf{Prédiction majoritaire} \\
+		\hline
+		5    & normal & 7 & MITM \\
+		35   & normal & 7 & MITM \\
+		36   & scan   & 7 & normal \\
+		210  & normal & 7 & MITM \\
+		466  & normal & 7 & DoS \\
+		598  & normal & 7 & scan \\
+		768  & normal & 7 & physical fault \\
+		848  & normal & 7 & physical fault \\
+		864  & normal & 7 & scan \\
+		892  & normal & 7 & DoS \\
+		927  & normal & 7 & MITM \\
+		1104 & normal & 7 & MITM \\
+		1203 & normal & 7 & scan \\
+		1257 & normal & 7 & physical fault \\
+		1549 & scan   & 7 & normal \\
+		1559 & normal & 7 & physical fault \\
+		1628 & normal & 7 & MITM \\
+		\hline
+	\end{tabular}
+	\caption{Échantillons systématiquement mal classés lors des différentes exécutions}
+	\label{tab:misclassified_samples}
+\end{table}
+	
+	
+  
 
 \section*{Conclusion}
 
