@@ -21,35 +21,42 @@ A modular benchmarking framework for analyzing machine learning models on Cyber-
 ## Setup
 
 1. **Dependencies**: Ensure the following Python packages are installed:
+
    - `numpy`
    - `pandas`
    - `scikit-learn`
    - `torch`
    - `tqdm`
    - `pyyaml`
+   - `imblearn` (for oversampling / undersampling)
    - `xgboost` (optional, for XGBoost model)
    - `matplotlib`, `seaborn` (optional, for analysis plots)
-
 2. **Data**: Place your datasets in the `dataset/` directory:
+
    - Physical data: `dataset/Physical dataset/*.csv`
    - Network data: `dataset/Network datatset/csv/*.csv`
 
 ## Workflow
 
 ### 1. Configuration Generation
+
 Generate YAML config files for all models, datasets, and sizes (small/medium/large).
+
 ```bash
 python src/generate_configs.py
 ```
 
 ### 2. Training
+
 **Train a single model:**
+
 ```bash
 python src/train.py --config configs/mlp/physical_small.yaml --model mlp
 ```
 
 **Train batch of models:**
 Run all experiments, or filter by model/dataset/size.
+
 ```bash
 # Train everything
 python src/train_all.py
@@ -60,16 +67,20 @@ python src/train_all.py --model xgboost mlp
 ```
 
 ### 3. Evaluation & Analysis
+
 **Test a specific experiment:**
+
 ```bash
 python src/test.py --experiment experiments/<experiment_timestamp_folder>
 ```
 
 **Generate Analysis Report:**
 Aggregates results, builds a leaderboard, and plots training curves.
+
 ```bash
 python src/analyze_results.py
 ```
+
 Outputs are saved to `results_analysis/` (report.md, leaderboard.csv, plots).
 
 ## Features
