@@ -14,6 +14,7 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 from sklearn.neighbors import KNeighborsClassifier
+from tqdm import tqdm
 
 from .base_model import BaseModel, TrainingHistory
 
@@ -68,6 +69,22 @@ class KNNModel(BaseModel):
 
         self.model = KNeighborsClassifier(**params)
 
+    def _predict_batched(self, X: NDArray[np.float64], batch_size: int = 1000) -> NDArray[np.int64]:
+        """
+        Helper to predict in batches to manage memory and show progress.
+        """
+        n_samples = X.shape[0]
+        predictions = []
+
+        with tqdm(total=n_samples, desc="  Predicting", leave=False) as pbar:
+            for i in range(0, n_samples, batch_size):
+                batch_end = min(i + batch_size, n_samples)
+                batch_pred = self.model.predict(X[i:batch_end])
+                predictions.append(batch_pred)
+                pbar.update(batch_end - i)
+
+        return np.concatenate(predictions).astype(np.int64)
+
     def fit(
         self,
         X_train: NDArray[np.float64],
@@ -90,7 +107,7 @@ class KNNModel(BaseModel):
         history = TrainingHistory()
         start_time: float = time.time()
 
-        # Fit model
+        # Fit model (KNN just stores the data)
         self.model.fit(X_train, y_train)
 
         # Record training time
@@ -103,13 +120,15 @@ class KNNModel(BaseModel):
             print(f"  Note: Subsampling training set for KNN accuracy ({len(X_train)} -> 50000)")
             rng = np.random.RandomState(42)
             eval_indices = rng.choice(eval_indices, 50000, replace=False)
-            
-        train_pred: NDArray[np.int64] = self.model.predict(X_train[eval_indices])
+        
+        # Batch chunk prediction with progress bar
+        train_pred = self._predict_batched(X_train[eval_indices])
         train_acc: float = float(np.mean(train_pred == y_train[eval_indices]))
         history.train_accuracy = [train_acc]
 
         if X_val is not None and y_val is not None:
-            val_pred: NDArray[np.int64] = self.model.predict(X_val)
+            # Batch chunk prediction with progress bar
+            val_pred = self._predict_batched(X_val)
             val_acc: float = float(np.mean(val_pred == y_val))
             history.val_accuracy = [val_acc]
 
@@ -120,12 +139,22 @@ class KNNModel(BaseModel):
         return history
 
     def predict(self, X: NDArray[np.float64]) -> NDArray[np.int64]:
-        """Predict class labels."""
-        return self.model.predict(X).astype(np.int64)
+        """Predict class labels using batching."""
+        return self._predict_batched(X)
 
-    def predict_proba(self, X: NDArray[np.float64]) -> NDArray[np.float64]:
-        """Predict class probabilities."""
-        return self.model.predict_proba(X).astype(np.float64)
+    def predict_proba(self, X: NDArray[np.float64], batch_size: int = 1000) -> NDArray[np.float64]:
+        """Predict class probabilities using batching."""
+        n_samples = X.shape[0]
+        probabilities = []
+
+        with tqdm(total=n_samples, desc="  Predicting Proba", leave=False) as pbar:
+            for i in range(0, n_samples, batch_size):
+                batch_end = min(i + batch_size, n_samples)
+                batch_proba = self.model.predict_proba(X[i:batch_end])
+                probabilities.append(batch_proba)
+                pbar.update(batch_end - i)
+
+        return np.concatenate(probabilities).astype(np.float64)
 
     def save(self, path: Path) -> None:
         """Save model to file."""
