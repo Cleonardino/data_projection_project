@@ -1,15 +1,10 @@
 import streamlit as st
-import numpy as np
-import pandas as pd
-
-st.header("Admin 1")
-st.write(f"You are logged in as coucou")
 
 navigation = st.navigation(
 	{
 		"Home": [
 			st.Page("app/home.py", title="Home", icon=":material/home:"),
-   			st.Page("app/data_overview.py", title="Home", icon=":material/database_search:")
+   			st.Page("app/data_overview.py", title="Data Overview", icon=":material/database_search:")
 		]
 	}
 )

@@ -1,3 +1,5 @@
 import streamlit as st
 
-st.write("coucou")
+st.title("Home")
+
+st.write("Welcome to this data benchmark project.")
