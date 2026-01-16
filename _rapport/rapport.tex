@@ -181,6 +181,25 @@ Le temps d'entraînement est également très faible (quasi-instantané), ce qui
     \label{tab:physical_small_results}
 \end{table}
 
+En comparant les résultats obtenus avec ceux de l'article de référence \cite{article_reference}, on constate que nos modèles TO COMPLETE.
+En effet dans la \hyperref[tab:results_physical]{Table 3}, on peut voir que les performances des KNN, Random Forest, SVM et Naive Bayes (NB) sont TO COMPLETE.
+
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{lcccc}
+		\hline
+		\textbf{Algorithme} & \textbf{Exactitude} & \textbf{Rappel} & \textbf{Précision} & \textbf{F1-score}\\
+		\hline
+		KNN & 0,98 & 0.95 & 0,95 & 0,95\\
+		RF  & 0,99 & 0,98 & 0,95 & 0,97\\
+		SVM & 0,93 & 0,92 & 0,64 & 0,75\\
+		NB  & 0,93 & 0,92 & 0,66 & 0,77\\
+		\hline
+	\end{tabular}
+	\caption{Résultats de l’évaluation des algorithmes d’apprentissage automatique sur le jeu de données physique}
+	\label{tab:results_physical}
+\end{table}	
+
 En s'attardant sur les erreurs commises par les différents modèles, on peut observer certaines corrélation entre celles-ci, comme le montre la \hyperref[fig:corrmat]{Figure 1}.
 Par exemple — et sasns surprise — le modèle MLP et le modèle MLP avec attention présentent une forte corrélation dans leurs erreurs.
 
@@ -193,9 +212,10 @@ Par exemple — et sasns surprise — le modèle MLP et le modèle MLP avec atte
 
 Comme il y a très peu de faible corrélations, il est raisonnable de penser que certains échantillons sont systématiquement mal classés par tous les modèles.
 La \hyperref[tab:misclassified_samples]{Table 3} liste les échantillons qui ont été mal classés par l'ensemble des modèles lors de nos différentes exécutions, ainsi que la prédiction majoritaire effectuée par les modèles pour ces échantillons.
+Heureusement, on constate que leur nombre est très faible — seulement 17 échantillons sur un total de X — donc il n'y a pas beaucoup d'entrées réellement problématiques.
+
 On remarque que la majorité des échantillons mal classés appartiennent à la classe \texttt{normal}, ce qui indique que les modèles ont du mal à distinguer les échantillons normaux des anomalies dans certains cas.
 Cela peut s'expliquer par le fait que les mesures sont effectuées toutes les secondes, et donc la limite entre un état normal et un état anormal peut être très fine.
-
 Il y a également des des échantillons mal classés appartenant à la classe \texttt{scan} qui est sous-représentée, ce qui peut expliquer les difficultés rencontrées par les modèles pour les classer correctement.
 De même, l'étiquiette \texttt{scan} est plusieurs fois prédite de manière erronée, ce qui montre bien que les modèles ont du mal à savoir à quoi correspond cette classe.
 
