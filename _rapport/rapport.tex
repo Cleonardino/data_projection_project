@@ -75,8 +75,14 @@
 \section*{Abréviations employées}
 
 \begin{itemize}
+	\item \textbf{CART} : Classification And Regression Trees
     \item \textbf{CNN} : Convolutional Neural Network
+	\item \textbf{CSV} : Comma Separated Values
+	\item \textbf{FT Transformer} : Feature Tokenizer Transformer
 	\item \textbf{KNN} : K-Nearest Neighbors
+	\item \textbf{MLP} : Multi-Layer Perceptron
+	\item \textbf{MCC} : Matthews Correlation Coefficient
+	\item \textbf{NLP} : Natural Language Processing
 \end{itemize}
 
 % % Table des tableaux (si nécessaire)
@@ -90,13 +96,39 @@
 
 \section*{Introduction} 
 
-TO COMPLETE
+Ce projet consiste en l'analyse de données cyberphysiques issues d'un système de distribution d'eau potable \cite{dataset}.
+L'objectif principal est de développer et d'évaluer des modèles de machine learning capables de détecter et de classer les anomalies dans le système, telles que les attaques informatiques ou les défaillances physiques.
+Parmi les modèles demandés, K-Nearest Neighbors (KNN), Random Forest, XGBoost et Multi-Layer Perceptron (MLP) ont été implémentés.
+De plus, des modèles basés sur des architectures de transformers adaptées aux données tabulaires on été testés en remplacement de l'algorithme de Classification And Regression Trees (CART).
+Finalement, les performances des modèles développés ont été comparées avec celles fournies dans l'article de référence \cite{article_reference}.
 
 \section{Données}
+
+Sont fournis X fichiers Comma Separated Values (CSV) contenant des données simulées issues d'un système de distribution d'eau potable.
 
 \subsection{Visualisation des données}
 
 \subsubsection{Présentation générale des données}
+
+Dans chaque fichier CSV, une ligne représente un ensemble de données collectées à un instant donné.
+Les colonnes renvoient à différents mécanismes sur lesquels une mesure a été faite.
+Elles sont présentées dans la \hyperref[tab:features]{Table 1}.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{c l l}
+		\hline
+		\textbf{Nom} & \textbf{Type} & \textbf{Description} \\
+		\hline
+		feature\_1 & float & Description de la feature 1 \\
+		feature\_2 & int   & Description de la feature 2 \\
+		...        & ...   & ... \\
+		label      & string & Type d'anomalie (ou normal) \\
+		\hline
+	\end{tabular}
+	\caption{Description des features présentes dans les fichiers CSV}
+	\label{tab:features}
+\end{table}
 
 \subsubsection{Analyse des données}
 
@@ -120,11 +152,13 @@ TO COMPLETE
 
 \subsubsection{MLP avec attention}
 
-\section{Évaluation}
+\section{Évaluation et comparaison avec les données de référence}
 
 \subsection{Données physiques}
 
-D'après les résultats présentés dans le tableau \ref{tab:physical_small_results}, le modèle \texttt{small\_knn} obtient les meilleures performances sur le jeu de données \texttt{physical\_small}, avec une précision de \textbf{97,74\%}, un F1-macro de \textbf{0,8007}, une précision équilibrée de \textbf{0,8235} et un MCC de \textbf{0,9402}. Le temps d'entraînement est également très faible (quasi-instantané), ce qui en fait un choix efficace pour ce type de données.
+D'après les résultats présentés dans la \hyperref[tab:physical_small_results]{Table 2}, le modèle \texttt{small\_knn} obtient les meilleures performances sur le jeu de données \texttt{physical\_small}, avec une précision de \textbf{97,74\%}, un F1-macro de \textbf{0,8007}, une précision équilibrée de \textbf{0,8235} et un MCC de \textbf{0,9402}.
+Le temps d'entraînement est également très faible (quasi-instantané), ce qui en fait un choix efficace pour ce type de données.
+À l'inverse, le modèle \texttt{small\_random\_forest} affiche les performances les plus faibles, ce qui peut s'expliquer par une répartition des classses TO COMPLETE.
 
 \begin{table}[H]
     \centering
@@ -147,12 +181,23 @@ D'après les résultats présentés dans le tableau \ref{tab:physical_small_resu
     \label{tab:physical_small_results}
 \end{table}
 
+En s'attardant sur les erreurs commises par les différents modèles, on peut observer certaines corrélation entre celles-ci, comme le montre la \hyperref[fig:corrmat]{Figure 1}.
+Par exemple — et sasns surprise — le modèle MLP et le modèle MLP avec attention présentent une forte corrélation dans leurs erreurs.
+
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=1\textwidth]{images/correlation_heatmap.png}
 	\caption{Matrice de corrélation des erreurs entre les modèles}
 	\label{fig:corrmat}
 \end{figure}
+
+Comme il y a très peu de faible corrélations, il est raisonnable de penser que certains échantillons sont systématiquement mal classés par tous les modèles.
+La \hyperref[tab:misclassified_samples]{Table 3} liste les échantillons qui ont été mal classés par l'ensemble des modèles lors de nos différentes exécutions, ainsi que la prédiction majoritaire effectuée par les modèles pour ces échantillons.
+On remarque que la majorité des échantillons mal classés appartiennent à la classe \texttt{normal}, ce qui indique que les modèles ont du mal à distinguer les échantillons normaux des anomalies dans certains cas.
+Cela peut s'expliquer par le fait que les mesures sont effectuées toutes les secondes, et donc la limite entre un état normal et un état anormal peut être très fine.
+
+Il y a également des des échantillons mal classés appartenant à la classe \texttt{scan} qui est sous-représentée, ce qui peut expliquer les difficultés rencontrées par les modèles pour les classer correctement.
+De même, l'étiquiette \texttt{scan} est plusieurs fois prédite de manière erronée, ce qui montre bien que les modèles ont du mal à savoir à quoi correspond cette classe.
 
 \begin{table}[H]
 	\centering
