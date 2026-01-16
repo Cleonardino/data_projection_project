@@ -6,5 +6,3 @@ Who does what?
 - Clément Desberg: Streamlit
 - Lucas Levy: Data analysis & (KNN + Random Forest) methods
 - Nathan Cerisara: Data analysis & (XGBOOST + MLP + CART -> Transformer) methods
-
-
