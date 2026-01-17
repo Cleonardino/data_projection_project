@@ -39,8 +39,8 @@
 \newcommand{\ttt}[1]{\texttt{#1}}
 
 \newcommand{\myparagraph}[1]{%
-  \paragraph{#1} \mbox{} \\
-  \vspace{-1em} % Ajusté à mon goût
+  	\paragraph{#1} \mbox{} \\
+  	\vspace{-1em}
 }
 
 \setlist[itemize,1]{label={\textbullet}}
@@ -64,22 +64,25 @@
 
 %----------- Initialisation -------------------
         
-% 1️⃣ Crée la page de garde SANS marges fancy
 \fairepagedegarde
-
-% 2️⃣ Maintenant on applique les marges/fancyhdr pour le reste du document
 \fairemarges
 
 \newpage
-\tabledematieres %Créer la table de matières
 
-% Table des figures
+\tabledematieres
 \listoffigures
 
 \section*{Abréviations employées}
 
 \begin{itemize}
+	\item \textbf{CART} : Classification And Regression Trees
     \item \textbf{CNN} : Convolutional Neural Network
+	\item \textbf{CSV} : Comma Separated Values
+	\item \textbf{FT Transformer} : Feature Tokenizer Transformer
+	\item \textbf{KNN} : K-Nearest Neighbors
+	\item \textbf{MLP} : Multi-Layer Perceptron
+	\item \textbf{MCC} : Matthews Correlation Coefficient
+	\item \textbf{NLP} : Natural Language Processing
 \end{itemize}
 
 % % Table des tableaux (si nécessaire)
@@ -93,13 +96,39 @@
 
 \section*{Introduction} 
 
-TO COMPLETE
+Ce projet consiste en l'analyse de données cyberphysiques issues d'un système de distribution d'eau potable \cite{dataset}.
+L'objectif principal est de développer et d'évaluer des modèles de machine learning capables de détecter et de classer les anomalies dans le système, telles que les attaques informatiques ou les défaillances physiques.
+Parmi les modèles demandés, K-Nearest Neighbors (KNN), Random Forest, XGBoost et Multi-Layer Perceptron (MLP) ont été implémentés.
+De plus, des modèles basés sur des architectures de transformers adaptées aux données tabulaires on été testés en remplacement de l'algorithme de Classification And Regression Trees (CART).
+Finalement, les performances des modèles développés ont été comparées avec celles fournies dans l'article de référence \cite{article_reference}.
 
 \section{Données}
+
+Sont fournis X fichiers Comma Separated Values (CSV) contenant des données simulées issues d'un système de distribution d'eau potable.
 
 \subsection{Visualisation des données}
 
 \subsubsection{Présentation générale des données}
+
+Dans chaque fichier CSV, une ligne représente un ensemble de données collectées à un instant donné.
+Les colonnes renvoient à différents mécanismes sur lesquels une mesure a été faite.
+Elles sont présentées dans la \hyperref[tab:features]{Table 1}.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{c l l}
+		\hline
+		\textbf{Nom} & \textbf{Type} & \textbf{Description} \\
+		\hline
+		feature\_1 & float & Description de la feature 1 \\
+		feature\_2 & int   & Description de la feature 2 \\
+		...        & ...   & ... \\
+		label      & string & Type d'anomalie (ou normal) \\
+		\hline
+	\end{tabular}
+	\caption{Description des features présentes dans les fichiers CSV}
+	\label{tab:features}
+\end{table}
 
 \subsubsection{Analyse des données}
 
@@ -107,7 +136,120 @@ TO COMPLETE
 
 \section{Application des algorithmes}
 
-\section{Évaluation}
+\subsection{KNN}
+
+\subsection{Random Forest}
+
+\subsection{XGBoost}
+
+\subsection{MLP}
+
+\subsection{Modèles de transformers}
+
+\subsubsection{Tab Transformer}
+
+\subsubsection{FT Transformer}
+
+\subsubsection{MLP avec attention}
+
+\section{Évaluation et comparaison avec les données de référence}
+
+\subsection{Données physiques}
+
+D'après les résultats présentés dans la \hyperref[tab:physical_small_results]{Table 2}, le modèle \texttt{small\_knn} obtient les meilleures performances sur le jeu de données \texttt{physical\_small}, avec une précision de \textbf{97,74\%}, un F1-macro de \textbf{0,8007}, une précision équilibrée de \textbf{0,8235} et un MCC de \textbf{0,9402}.
+Le temps d'entraînement est également très faible (quasi-instantané), ce qui en fait un choix efficace pour ce type de données.
+À l'inverse, le modèle \texttt{small\_random\_forest} affiche les performances les plus faibles, ce qui peut s'expliquer par une répartition des classses TO COMPLETE.
+
+\begin{table}[H]
+    \centering
+	\resizebox{\textwidth}{!}{%
+    \begin{tabular}{c l c c c c c}
+    	\hline
+    	\textbf{Rang} & \textbf{Modèle} & \textbf{Précision} & \textbf{F1 (macro)} & \textbf{Précision équilibrée} & \textbf{MCC} & \textbf{Temps (s)} \\
+    	\hline
+    	1 & \texttt{small\_knn} & 0.9774 & 0.8007 & 0.8235 & 0.9402 & 0.0 \\
+    	2 & \texttt{small\_tab\_transformer} & 0.9683 & 0.8001 & 0.8250 & 0.9188 & 40.7 \\
+    	3 & \texttt{small\_attention\_mlp} & 0.9048 & 0.7259 & 0.8106 & 0.7946 & 35.2 \\
+    	4 & \texttt{small\_mlp} & 0.8786 & 0.6889 & 0.7988 & 0.7515 & 22.7 \\
+    	5 & \texttt{small\_ft\_transformer} & 0.8401 & 0.6593 & 0.7970 & 0.7004 & 56.1 \\
+    	6 & \texttt{small\_xgboost} & 0.8676 & 0.6412 & 0.7906 & 0.7287 & 0.6 \\
+    	7 & \texttt{small\_random\_forest} & 0.6101 & 0.4687 & 0.7242 & 0.4779 & 0.2 \\
+    	\hline
+    \end{tabular}
+	}
+	\caption{Comparaison des expériences sur le jeu de données physiques physical\_small}
+    \label{tab:physical_small_results}
+\end{table}
+
+En comparant les résultats obtenus avec ceux de l'article de référence \cite{article_reference}, on constate que nos modèles TO COMPLETE.
+En effet dans la \hyperref[tab:results_physical]{Table 3}, on peut voir que les performances des KNN, Random Forest, SVM et Naive Bayes (NB) sont TO COMPLETE.
+
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{lcccc}
+		\hline
+		\textbf{Algorithme} & \textbf{Exactitude} & \textbf{Rappel} & \textbf{Précision} & \textbf{F1-score}\\
+		\hline
+		KNN & 0,98 & 0.95 & 0,95 & 0,95\\
+		RF  & 0,99 & 0,98 & 0,95 & 0,97\\
+		SVM & 0,93 & 0,92 & 0,64 & 0,75\\
+		NB  & 0,93 & 0,92 & 0,66 & 0,77\\
+		\hline
+	\end{tabular}
+	\caption{Résultats de l’évaluation des algorithmes d’apprentissage automatique sur le jeu de données physique}
+	\label{tab:results_physical}
+\end{table}	
+
+En s'attardant sur les erreurs commises par les différents modèles, on peut observer certaines corrélation entre celles-ci, comme le montre la \hyperref[fig:corrmat]{Figure 1}.
+Par exemple — et sasns surprise — le modèle MLP et le modèle MLP avec attention présentent une forte corrélation dans leurs erreurs.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{images/correlation_heatmap.png}
+	\caption{Matrice de corrélation des erreurs entre les modèles}
+	\label{fig:corrmat}
+\end{figure}
+
+Comme il y a très peu de faible corrélations, il est raisonnable de penser que certains échantillons sont systématiquement mal classés par tous les modèles.
+La \hyperref[tab:misclassified_samples]{Table 3} liste les échantillons qui ont été mal classés par l'ensemble des modèles lors de nos différentes exécutions, ainsi que la prédiction majoritaire effectuée par les modèles pour ces échantillons.
+Heureusement, on constate que leur nombre est très faible — seulement 17 échantillons sur un total de X — donc il n'y a pas beaucoup d'entrées réellement problématiques.
+
+On remarque que la majorité des échantillons mal classés appartiennent à la classe \texttt{normal}, ce qui indique que les modèles ont du mal à distinguer les échantillons normaux des anomalies dans certains cas.
+Cela peut s'expliquer par le fait que les mesures sont effectuées toutes les secondes, et donc la limite entre un état normal et un état anormal peut être très fine.
+Il y a également des des échantillons mal classés appartenant à la classe \texttt{scan} qui est sous-représentée, ce qui peut expliquer les difficultés rencontrées par les modèles pour les classer correctement.
+De même, l'étiquiette \texttt{scan} est plusieurs fois prédite de manière erronée, ce qui montre bien que les modèles ont du mal à savoir à quoi correspond cette classe.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{c l c l}
+		\hline
+		\textbf{Entrée} & \textbf{Label réel} & \textbf{Nombre d'erreurs} & \textbf{Prédiction majoritaire} \\
+		\hline
+		5    & normal & 7 & MITM \\
+		35   & normal & 7 & MITM \\
+		36   & scan   & 7 & normal \\
+		210  & normal & 7 & MITM \\
+		466  & normal & 7 & DoS \\
+		598  & normal & 7 & scan \\
+		768  & normal & 7 & physical fault \\
+		848  & normal & 7 & physical fault \\
+		864  & normal & 7 & scan \\
+		892  & normal & 7 & DoS \\
+		927  & normal & 7 & MITM \\
+		1104 & normal & 7 & MITM \\
+		1203 & normal & 7 & scan \\
+		1257 & normal & 7 & physical fault \\
+		1549 & scan   & 7 & normal \\
+		1559 & normal & 7 & physical fault \\
+		1628 & normal & 7 & MITM \\
+		\hline
+	\end{tabular}
+	\caption{Échantillons systématiquement mal classés lors des différentes exécutions}
+	\label{tab:misclassified_samples}
+\end{table}
+	
+	
+  
 
 \section*{Conclusion}
 
