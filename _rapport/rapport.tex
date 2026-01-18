@@ -105,7 +105,40 @@ Finalement, les performances des modèles développés ont été comparées avec
 \section{Données}
 
 L'ensemble des données comprend 5 fichiers Comma Separated Values (CSV) sur les relevés physiques et 5 fichiers CSV sur les relevés réseau.
-Dans chaque cas, il y a un fichier de mesures prises en période normale – sans anomalie – et 4 fichiers de mesures prises en période anormale, avec des anomalies de différents types (attaques informatiques ou défaillances physiques).
+Dans chaque cas, il y a un fichier de mesures prises en période normale – sans anomalie – et 4 fichiers de mesures prises en période anormale, avec des anomalies correspondant au type de données (attaques informatiques ou défaillances physiques).
+Le sujet de chaque fichier est résumé dans la \hyperref[tab:files]{Table 1}.
+
+\begin{table}[h]
+	\centering
+	\begin{tabular}{|l|l|}
+	\hline
+	\multicolumn{1}{|c|}{\textbf{Fichier}} & \multicolumn{1}{|c|}{\textbf{Contenu}} \\
+	\hline
+	\mintinline{text}{normal.csv}  & Acquisitions du traffic réseau en période normale \\
+	\hline
+	\mintinline{text}{phy_norm.csv}  & Acquisitions des mesures physiques en période normale \\
+	\hline
+	\mintinline{text}{attack_1.csv}  & Première acquisition du traffic réseau avec anomalies \\
+	\hline
+	\mintinline{text}{dataset_att_1.csv}  & Première acquisition des mesures physiques avec anomalies \\
+	\hline
+	\mintinline{text}{attack_2.csv}  & Deuxième acquisition du traffic réseau avec anomalies \\
+	\hline
+	\mintinline{text}{dataset_att_2.csv}  & Deuxième acquisition des mesures physiques avec anomalies \\
+	\hline
+	\mintinline{text}{attack_3.csv}  & Troisième acquisition du traffic réseau avec anomalies \\
+	\hline
+	\mintinline{text}{dataset_att_3.csv}  & Troisième acquisition des mesures physiques avec anomalies \\
+	\hline
+	\mintinline{text}{attack_4.csv}  & Quatrième acquisition du traffic réseau avec anomalies \\
+	\hline
+	\mintinline{text}{dataset_att_4.csv}  & Quatrième acquisition des mesures physiques avec anomalies \\
+	\hline
+	\end{tabular}
+	\caption{Aperçu des fichiers de données fournis, d'après le fichier fourni \texttt{README.xlsx}}
+	\label{tab:files}
+	\end{table}
+	
 
 \subsection{Visualisation des données}
 
@@ -113,7 +146,7 @@ Dans chaque cas, il y a un fichier de mesures prises en période normale – san
 
 Dans chaque fichier CSV, une ligne représente un ensemble de données collectées à un instant donné.
 Les colonnes renvoient à différents mécanismes sur lesquels une mesure a été faite.
-Elles sont présentées dans la \hyperref[tab:features]{Table 1}.
+Elles sont présentées dans la \hyperref[tab:features]{Table 2}.
 
 \begin{table}[H]
 	\centering
@@ -157,7 +190,7 @@ Elles sont présentées dans la \hyperref[tab:features]{Table 1}.
 
 \subsection{Données physiques}
 
-D'après les résultats présentés dans la \hyperref[tab:physical_small_results]{Table 2}, le modèle \texttt{small\_knn} obtient les meilleures performances sur le jeu de données \texttt{physical\_small}, avec une précision de \textbf{97,74\%}, un F1-macro de \textbf{0,8007}, une précision équilibrée de \textbf{0,8235} et un MCC de \textbf{0,9402}.
+D'après les résultats présentés dans la \hyperref[tab:physical_small_results]{Table 3}, le modèle \texttt{small\_knn} obtient les meilleures performances sur le jeu de données \texttt{physical\_small}, avec une précision de \textbf{97,74\%}, un F1-macro de \textbf{0,8007}, une précision équilibrée de \textbf{0,8235} et un MCC de \textbf{0,9402}.
 Le temps d'entraînement est également très faible (quasi-instantané), ce qui en fait un choix efficace pour ce type de données.
 À l'inverse, le modèle \texttt{small\_random\_forest} affiche les performances les plus faibles, ce qui peut s'expliquer par une répartition des classses TO COMPLETE.
 
@@ -183,7 +216,7 @@ Le temps d'entraînement est également très faible (quasi-instantané), ce qui
 \end{table}
 
 En comparant les résultats obtenus avec ceux de l'article de référence \cite{article_reference}, on constate que nos modèles TO COMPLETE.
-En effet dans la \hyperref[tab:results_physical]{Table 3}, on peut voir que les performances des KNN, Random Forest, SVM et Naive Bayes (NB) sont TO COMPLETE.
+En effet dans la \hyperref[tab:results_physical]{Table 4}, on peut voir que les performances des KNN, Random Forest, SVM et Naive Bayes (NB) sont TO COMPLETE.
 
 \begin{table}[ht]
 	\centering
@@ -212,7 +245,7 @@ Par exemple — et sasns surprise — le modèle MLP et le modèle MLP avec atte
 \end{figure}
 
 Comme il y a très peu de faible corrélations, il est raisonnable de penser que certains échantillons sont systématiquement mal classés par tous les modèles.
-La \hyperref[tab:misclassified_samples]{Table 3} liste les échantillons qui ont été mal classés par l'ensemble des modèles lors de nos différentes exécutions, ainsi que la prédiction majoritaire effectuée par les modèles pour ces échantillons.
+La \hyperref[tab:misclassified_samples]{Table 5} liste les échantillons qui ont été mal classés par l'ensemble des modèles lors de nos différentes exécutions, ainsi que la prédiction majoritaire effectuée par les modèles pour ces échantillons.
 Heureusement, on constate que leur nombre est très faible — seulement 17 échantillons sur un total de X — donc il n'y a pas beaucoup d'entrées réellement problématiques.
 
 On remarque que la majorité des échantillons mal classés appartiennent à la classe \texttt{normal}, ce qui indique que les modèles ont du mal à distinguer les échantillons normaux des anomalies dans certains cas.
