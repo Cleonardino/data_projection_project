@@ -195,6 +195,18 @@ La pipeline actuelle de prétraitement des données est la suivante :
 	\item Différentes configurations pour chaque modèle (hyperparamètres, datasets, taille des modèles, etc.) dans \texttt{configs/model_type/config_name.yaml}.
 	\item Scripts d'entraînement et de test dans \texttt{scripts/train.py} et \texttt{scripts/test.py}.
 	\item Les données sont pré-traitées en amont \textbf{de la même façon pour tous les types de modèles}.
+	\item Un système de cache est utilisé pour éviter de traiter à nouveau les données lors de nouvelles exécutions et sont enregistrées dans le dossier \texttt{cached\_datasets}.
+	\item Ensuite, les modèles sont entrainés individuellement avec le script \texttt{scripts/train.py} sur un fichier de config, ou alors il est aussi possible d'entraîner tous les modèles ou un groupe de modèles d'un coup avec le script \texttt{scripts/train\_all.py}.
+	\item Les résultats de chaque entraînement de chaque config de modèle sont enregistrés dans le dossier \texttt{experiments}.
+	\item Sont enregistrés pour chaque entraînement:
+	\begin{itemize}
+		\item les poids du meilleurs modèle
+		\item la configuration utilisée (au cas ou les configurations changent)
+		\item Les métriques sur le jeu de données d'entraînement, validation et test du meilleur modèle.
+		\item Les erreurs sur le jeu de données d'entraînement, validation et test du meilleur modèle.
+		\item Les courbes de loss et d'accuracy sur le jeu de donnée d'entraînement et de validation.
+	\end{itemize}
+	\item Un rapport récapitulatif de tous les entraînements est ensuite généré avec le script \texttt{src/analyze\_results.py} séparé pour le physical et le network datasets.
 \end{itemize}
 
 \subsection{KNN}
