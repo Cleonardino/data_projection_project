@@ -111,58 +111,71 @@ Le sujet de chaque fichier est résumé dans la \hyperref[tab:files]{Table 1}.
 \begin{table}[h]
 	\centering
 	\begin{tabular}{|l|l|}
-	\hline
-	\multicolumn{1}{|c|}{\textbf{Fichier}} & \multicolumn{1}{|c|}{\textbf{Contenu}} \\
-	\hline
-	\mintinline{text}{normal.csv}  & Acquisitions du traffic réseau en période normale \\
-	\hline
-	\mintinline{text}{phy_norm.csv}  & Acquisitions des mesures physiques en période normale \\
-	\hline
-	\mintinline{text}{attack_1.csv}  & Première acquisition du traffic réseau avec anomalies \\
-	\hline
-	\mintinline{text}{dataset_att_1.csv}  & Première acquisition des mesures physiques avec anomalies \\
-	\hline
-	\mintinline{text}{attack_2.csv}  & Deuxième acquisition du traffic réseau avec anomalies \\
-	\hline
-	\mintinline{text}{dataset_att_2.csv}  & Deuxième acquisition des mesures physiques avec anomalies \\
-	\hline
-	\mintinline{text}{attack_3.csv}  & Troisième acquisition du traffic réseau avec anomalies \\
-	\hline
-	\mintinline{text}{dataset_att_3.csv}  & Troisième acquisition des mesures physiques avec anomalies \\
-	\hline
-	\mintinline{text}{attack_4.csv}  & Quatrième acquisition du traffic réseau avec anomalies \\
-	\hline
-	\mintinline{text}{dataset_att_4.csv}  & Quatrième acquisition des mesures physiques avec anomalies \\
-	\hline
+		\hline
+		\multicolumn{1}{|c|}{\textbf{Fichier}} & \multicolumn{1}{|c|}{\textbf{Contenu}} \\
+		\hline
+		\mintinline{text}{normal.csv}  & Acquisitions du traffic réseau en période normale \\
+		\hline
+		\mintinline{text}{phy_norm.csv}  & Acquisitions des mesures physiques en période normale \\
+		\hline
+		\mintinline{text}{attack_1.csv}  & Première acquisition du traffic réseau avec anomalies \\
+		\hline
+		\mintinline{text}{dataset_att_1.csv}  & Première acquisition des mesures physiques avec anomalies \\
+		\hline
+		\mintinline{text}{attack_2.csv}  & Deuxième acquisition du traffic réseau avec anomalies \\
+		\hline
+		\mintinline{text}{dataset_att_2.csv}  & Deuxième acquisition des mesures physiques avec anomalies \\
+		\hline
+		\mintinline{text}{attack_3.csv}  & Troisième acquisition du traffic réseau avec anomalies \\
+		\hline
+		\mintinline{text}{dataset_att_3.csv}  & Troisième acquisition des mesures physiques avec anomalies \\
+		\hline
+		\mintinline{text}{attack_4.csv}  & Quatrième acquisition du traffic réseau avec anomalies \\
+		\hline
+		\mintinline{text}{dataset_att_4.csv}  & Quatrième acquisition des mesures physiques avec anomalies \\
+		\hline
 	\end{tabular}
 	\caption{Aperçu des fichiers de données fournis, d'après le fichier fourni \texttt{README.xlsx}}
 	\label{tab:files}
 	\end{table}
-	
+
+Il y a également des fichiers packet capture (PCAP) fournis pour les données réseau, mais ceux-ci n'ont pas été utilisés dans le cadre de ce projet.
 
 \subsection{Visualisation des données}
 
 \subsubsection{Présentation générale des données}
 
-Dans chaque fichier CSV, une ligne représente un ensemble de données collectées à un instant donné.
-Les colonnes renvoient à différents mécanismes sur lesquels une mesure a été faite.
-Elles sont présentées dans la \hyperref[tab:features]{Table 2}.
+Dans chaque fichier CSV, une ligne représente un ensemble de données collectées à un instant donné, tandis que les colonnes renvoient à différents mécanismes sur lesquels une mesure a été faite.
 
-\begin{table}[H]
+\myparagraph{Données physiques}
+
+Les mesures physiques sont reportées toutes les secondes et concernent des paramètres tels que l'état des pompes, les valeurs de différents capteurs, etc.
+En tout, il y a 41 caractéristiques, présentées dans la \hyperref[tab:features]{Table 2} (une traduction du tableau original présent dans \cite{article_reference}).
+
+\begin{table}[h!]
 	\centering
-	\begin{tabular}{c l l}
+	\begin{tabular}{|c|l|l|}
 		\hline
-		\textbf{Nom} & \textbf{Type} & \textbf{Description} \\
-		\hline
-		feature\_1 & float & Description de la feature 1 \\
-		feature\_2 & int   & Description de la feature 2 \\
-		...        & ...   & ... \\
-		label      & string & Type d'anomalie (ou normal) \\
-		\hline
+		\textbf{N°} & \textbf{Nom} & \textbf{Description} \\ \hline
+		1  & Time & Date d'acquisition \\ \hline
+		2  & Src IP address & Adresse IP source \\ \hline
+		3  & Dst IP adress & Adresse IP destination \\ \hline
+		4  & Src MAC address & Adresse MAC source \\ \hline
+		5  & Dst MAC address & Adresse MAC destination \\ \hline
+		6  & Src Port & Port source \\ \hline
+		7  & Dst Port & Port destination \\ \hline
+		8  & Proto & Protocole \\ \hline
+		9  & TCP flags & CWR | ECN | URG | ACK | PSH | RST | SYN | FIN flags \\ \hline
+		10 & Payload size & Taille de la charge utile \\ \hline
+		11 & MODBUS code & Code MODBUS \\ \hline
+		12 & MODBUS value & Valeur réponse MODBUS \\ \hline
+		13 & num\_pkts\_src & Nombre de paquets de la même addresse source durant les 2 dernières secondes \\ \hline
+		14 & num\_pkts\_dst & Nombre de paquets de la même addresse destination durant les 2 dernières secondes \\ \hline
 	\end{tabular}
-	\caption{Description des features présentes dans les fichiers CSV}
+	\caption{Titre du tableau ici}
 	\label{tab:features}
 \end{table}
+	
 
 \subsubsection{Analyse des données}
 
@@ -175,7 +188,7 @@ La pipeline actuelle de prétraitement des données est la suivante :
 	\item Sous Echantillonage de l'ensemble des données pour ne pas travailler sur tout le dataset, mais sur un sous ensemble réduit.
 	\item Extraction des features et des labels.
 	\item Encodage des labels avec \textit{LabelEncoder} de \textit{scikit-learn}.
-	\item Stratification de l'ensemble des données en ensembles d'entraînement, de validation et de test avec \textit{train_test_split} de \textit{scikit-learn} avec les options de \textit{stratify} et \textit{shuffle} avec un ratio de 70\% - 15\% - 15\% pour l'ensemble d'entraînement, de validation et de test.
+	\item Stratification de l'ensemble des données en ensembles d'entraînement, de validation et de test avec \textit{train\_test\_split} de \textit{scikit-learn} avec les options de \textit{stratify} et \textit{shuffle} avec un ratio de 70\% - 15\% - 15\% pour l'ensemble d'entraînement, de validation et de test.
 	\item Application du balancing sur l'ensemble d'entraînement si activé :
 	\begin{itemize}
 		\item \textbf{OverSampling} avec \textit{SMOTE}
@@ -192,7 +205,7 @@ La pipeline actuelle de prétraitement des données est la suivante :
 \begin{itemize}
     \item Organisation des modèles bien structurée
     \item Scripts définissant la structure de chaque modèle dans le dossier \texttt{models/}.
-	\item Différentes configurations pour chaque modèle (hyperparamètres, datasets, taille des modèles, etc.) dans \texttt{configs/model_type/config_name.yaml}.
+	\item Différentes configurations pour chaque modèle (hyperparamètres, datasets, taille des modèles, etc.) dans \texttt{configs/model\_type/config\_name.yaml}.
 	\item Scripts d'entraînement et de test dans \texttt{scripts/train.py} et \texttt{scripts/test.py}.
 	\item Les données sont pré-traitées en amont \textbf{de la même façon pour tous les types de modèles}.
 	\item Un système de cache est utilisé pour éviter de traiter à nouveau les données lors de nouvelles exécutions et sont enregistrées dans le dossier \texttt{cached\_datasets}.
