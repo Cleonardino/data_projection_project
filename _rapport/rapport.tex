@@ -135,7 +135,34 @@ Elles sont présentées dans la \hyperref[tab:features]{Table 1}.
 
 \subsection{Prétraitement}
 
+La pipeline actuelle de prétraitement des données est la suivante :
+
+\begin{enumerate}
+	\item Charger les données brutes à partir de tous les fichiers CSV du jeu de données sélectionné (\textit{physical} ou \textit{network}).
+	\item Sous Echantillonage de l'ensemble des données pour ne pas travailler sur tout le dataset, mais sur un sous ensemble réduit.
+	\item Extraction des features et des labels.
+	\item Encodage des labels avec \textit{LabelEncoder} de \textit{scikit-learn}.
+	\item Stratification de l'ensemble des données en ensembles d'entraînement, de validation et de test avec \textit{train_test_split} de \textit{scikit-learn} avec les options de \textit{stratify} et \textit{shuffle} avec un ratio de 70\% - 15\% - 15\% pour l'ensemble d'entraînement, de validation et de test.
+	\item Application du balancing sur l'ensemble d'entraînement si activé :
+	\begin{itemize}
+		\item \textbf{OverSampling} avec \textit{SMOTE}
+		\item \textbf{OverSampling} avec \textit{RandomOverSampler}
+		\item \textbf{OverSampling} manuellement avec l'augmentation des données
+		\item \textbf{UnderSampling} avec \textit{RandomUnderSampler}
+		\item \textbf{UnderSampling} avec \textit{KNN for easy data}
+	\end{itemize}
+	\item Normalisation des données avec \textit{StandardScaler} de \textit{scikit-learn}
+\end{enumerate}
+
 \section{Application des algorithmes}
+
+\begin{itemize}
+    \item Organisation des modèles bien structurée
+    \item Scripts définissant la structure de chaque modèle dans le dossier \texttt{models/}.
+	\item Différentes configurations pour chaque modèle (hyperparamètres, datasets, taille des modèles, etc.) dans \texttt{configs/model_type/config_name.yaml}.
+	\item Scripts d'entraînement et de test dans \texttt{scripts/train.py} et \texttt{scripts/test.py}.
+	\item Les données sont pré-traitées en amont \textbf{de la même façon pour tous les types de modèles}.
+\end{itemize}
 
 \subsection{KNN}
 
