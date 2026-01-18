@@ -158,6 +158,25 @@ En tout, il y a 41 caractéristiques, présentées dans la \hyperref[tab:feature
 		\hline
 		\textbf{N°} & \textbf{Nom} & \textbf{Description} \\ \hline
 		1  & Time & Date d'acquisition \\ \hline
+		2-9  & Tank_i & Valeur du capteur de presion du réservoir i (i allant de 1 à 8) \\ \hline
+		10-15  & Pump_i & État de la pompe i (i allant de 1 à 6) \\ \hline
+		16-19  & Flow_sensor_i & Valeur du capteur de débit i (i allant de 1 à 4) \\ \hline
+		20-41  & Valv_i & État de l'électrovanne i (i allant de 1 à 22) \\ \hline
+	\end{tabular}
+	\caption{Caractéristiques des données physiques}
+	\label{tab:features}
+\end{table}
+
+\myparagraph{Données réseau}
+
+Au nombre de 14, les données réseau sont listées dans la \hyperref[tab:features]{Table 2} (une traduction du tableau original présent dans \cite{article_reference}).
+
+\begin{table}[h!]
+	\centering
+	\begin{tabular}{|c|l|l|}
+		\hline
+		\textbf{N°} & \textbf{Nom} & \textbf{Description} \\ \hline
+		1  & Time & Date d'acquisition \\ \hline
 		2  & Src IP address & Adresse IP source \\ \hline
 		3  & Dst IP adress & Adresse IP destination \\ \hline
 		4  & Src MAC address & Adresse MAC source \\ \hline
@@ -172,7 +191,7 @@ En tout, il y a 41 caractéristiques, présentées dans la \hyperref[tab:feature
 		13 & num\_pkts\_src & Nombre de paquets de la même addresse source durant les 2 dernières secondes \\ \hline
 		14 & num\_pkts\_dst & Nombre de paquets de la même addresse destination durant les 2 dernières secondes \\ \hline
 	\end{tabular}
-	\caption{Titre du tableau ici}
+	\caption{Caractéristiques des données réseau}
 	\label{tab:features}
 \end{table}
 	
