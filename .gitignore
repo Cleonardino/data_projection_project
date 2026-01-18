@@ -8,3 +8,4 @@ __pycache__
 *log*
 experiments
 cached_datasets
+*checkpoint*
