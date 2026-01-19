@@ -1,8 +1,18 @@
 import streamlit as st
+import numpy as np
+import pandas as pd
+
+class ModelPage:
+    def __init__(self, title, icon, metrics, train_history):
+        self.title = title
+        self.icon = icon
+        self.metrics = metrics
+        self.train_history = train_history
+
 
 navigation = st.navigation(
 	{
-		"Home": [
+		"General": [
 			st.Page("app/home.py", title="Home", icon=":material/home:"),
    			st.Page("app/data_overview.py", title="Data Overview", icon=":material/database_search:")
 		]
