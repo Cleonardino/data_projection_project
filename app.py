@@ -20,6 +20,7 @@ class ModelData:
 model_data : list[ModelData] = []
 
 experiments = load_experiments()
+print(len(experiments))
 
 for key in experiments:
     # Create page for the experiment
@@ -27,7 +28,7 @@ for key in experiments:
         key,
         ":material/home:",
         experiments[key]["metrics"],
-        experiments[key]["train_history"]
+        experiments[key]["history"]
         ))
 
 model_pages : list = []
@@ -36,14 +37,16 @@ for model in model_data:
     model_pages.append(st.Page(
         model.page_function,
         title=model.title,
-        icon=":material/database_search:"
+        icon=":material/keyboard_double_arrow_right:",
+        url_path=model.title
         ))
 
 navigation = st.navigation(
 	{
 		"General": [
 			st.Page("app/home.py", title="Home", icon=":material/home:"),
-   			st.Page("app/data_overview.py", title="Data Overview", icon=":material/database_search:")
+   			st.Page("app/data_overview.py", title="Data Overview", icon=":material/dataset:"),
+            st.Page("app/contact.py", title="Contact", icon=":material/contact_page:")
 		],
 		"Models": model_pages
 	}
