@@ -12,7 +12,7 @@ files_virgule = (
 )
 
 CHUNK_SIZE = 200_000
-labels = ['normal', 'nomal',  'DoS', 'physical', 'physical fault', 'MITM', 'scan', 'anomaly',]
+labels = ['normal', 'nomal',  'DoS', 'physical', 'physical fault', 'MITM', 'scan', 'anomaly']
 different_labels = set()
 
 for file in files:

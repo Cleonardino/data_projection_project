@@ -1,0 +1,450 @@
+
+================================================================================
+               ANALYSE COMPLÈTE DES DATASETS - NETWORK & PHYSICAL               
+================================================================================
+Date de génération: 2026-01-19 23:43:44
+
+================================================================================
+                           PARTIE 1: NETWORK DATASET                            
+================================================================================
+
+================================================================================
+                   Fichier: Network datatset/csv/attack_1.csv                   
+================================================================================
+
+--- STATISTIQUES DE BASE ---
+Nombre total de lignes: 5,527,409
+Nombre de colonnes: 16
+
+Distribution des labels:
+  normal: 3,687,410 (66.71%)
+  MITM: 1,214,098 (21.97%)
+  physical fault: 625,691 (11.32%)
+  anomaly: 210 (0.00%)
+
+Valeurs manquantes (principales):
+  modbus_response: 2,840,182 (51.38%)
+  modbus_fn: 153,123 (2.77%)
+  sport: 515 (0.01%)
+  dport: 515 (0.01%)
+  flags: 515 (0.01%)
+
+--- ANALYSE TEMPORELLE ---
+Pas de données temporelles
+
+--- ANALYSE TOPOLOGIQUE ---
+IPs sources uniques: 7
+IPs destinations uniques: 7
+IPs sources manquantes: 475
+
+Distribution des protocoles:
+  Modbus: 5,374,286
+  TCP: 152,608
+  ARP: 475
+  ICMP: 40
+
+Top 10 des IPs les plus actives:
+  84.3.251.20: 2,678,448 paquets
+  84.3.251.102: 854,860 paquets
+  84.3.251.101: 851,692 paquets
+  84.3.251.103: 834,158 paquets
+  84.3.251.18: 277,499 paquets
+  84.3.251.104: 15,486 paquets
+  84.3.251.105: 14,791 paquets
+
+--- PROTOCOLES PAR LABEL (top 3 labels) ---
+normal:
+  Modbus: 3,587,777
+  TCP: 99,633
+anomaly:
+  ARP: 199
+  ICMP: 11
+MITM:
+  Modbus: 1,177,779
+  TCP: 36,014
+  ARP: 276
+  ICMP: 29
+physical fault:
+  Modbus: 608,730
+  TCP: 16,961
+
+================================================================================
+                   Fichier: Network datatset/csv/attack_2.csv                   
+================================================================================
+
+--- STATISTIQUES DE BASE ---
+Nombre total de lignes: 5,159,469
+Nombre de colonnes: 16
+
+Distribution des labels:
+  normal: 4,093,168 (79.33%)
+  DoS: 571,875 (11.08%)
+  physical fault: 277,282 (5.37%)
+  MITM: 217,009 (4.21%)
+  anomaly: 105 (0.00%)
+  scan: 30 (0.00%)
+
+Valeurs manquantes (principales):
+  modbus_response: 2,849,430 (55.23%)
+  modbus_fn: 539,517 (10.46%)
+  sport: 385,383 (7.47%)
+  dport: 385,383 (7.47%)
+  flags: 385,383 (7.47%)
+
+--- ANALYSE TEMPORELLE ---
+Pas de données temporelles
+
+--- ANALYSE TOPOLOGIQUE ---
+IPs sources uniques: 8
+IPs destinations uniques: 8
+IPs sources manquantes: 276
+
+Distribution des protocoles:
+  Modbus: 4,619,952
+  ICMP: 385,107
+  TCP: 154,134
+  ARP: 276
+
+Top 10 des IPs les plus actives:
+  84.3.251.20: 2,601,900 paquets
+  84.3.251.101: 759,219 paquets
+  84.3.251.102: 727,329 paquets
+  84.3.251.103: 722,239 paquets
+  84.3.251.18: 245,704 paquets
+  84.3.251.110: 77,459 paquets
+  84.3.251.105: 12,693 paquets
+  84.3.251.104: 12,650 paquets
+
+--- PROTOCOLES PAR LABEL (top 3 labels) ---
+normal:
+  Modbus: 3,982,010
+  TCP: 111,158
+anomaly:
+  ARP: 103
+  ICMP: 2
+scan:
+  TCP: 30
+DoS:
+  ICMP: 385,099
+  Modbus: 158,343
+  TCP: 28,308
+  ARP: 125
+physical fault:
+  Modbus: 269,170
+  TCP: 8,112
+MITM:
+  Modbus: 210,429
+  TCP: 6,526
+  ARP: 48
+  ICMP: 6
+
+================================================================================
+                   Fichier: Network datatset/csv/attack_3.csv                   
+================================================================================
+
+--- STATISTIQUES DE BASE ---
+Nombre total de lignes: 5,862,547
+Nombre de colonnes: 16
+
+Distribution des labels:
+  DoS: 3,194,711 (54.49%)
+  normal: 2,070,555 (35.32%)
+  physical fault: 344,244 (5.87%)
+  MITM: 252,963 (4.31%)
+  anomaly: 74 (0.00%)
+
+Valeurs manquantes (principales):
+  modbus_response: 4,503,169 (76.81%)
+  modbus_fn: 3,143,940 (53.63%)
+  sport: 3,066,837 (52.31%)
+  dport: 3,066,837 (52.31%)
+  flags: 3,066,837 (52.31%)
+
+--- ANALYSE TEMPORELLE ---
+Pas de données temporelles
+
+--- ANALYSE TOPOLOGIQUE ---
+IPs sources uniques: 8
+IPs destinations uniques: 8
+IPs sources manquantes: 189
+
+Distribution des protocoles:
+  IP: 2,796,742
+  Modbus: 2,718,607
+  ICMP: 269,906
+  TCP: 77,103
+  ARP: 189
+
+Top 10 des IPs les plus actives:
+  84.3.251.110: 2,870,689 paquets
+  84.3.251.20: 1,542,823 paquets
+  84.3.251.101: 433,868 paquets
+  84.3.251.102: 429,719 paquets
+  84.3.251.103: 425,888 paquets
+  84.3.251.18: 144,183 paquets
+  84.3.251.105: 7,600 paquets
+  84.3.251.104: 7,588 paquets
+
+--- PROTOCOLES PAR LABEL (top 3 labels) ---
+normal:
+  Modbus: 2,014,291
+  TCP: 56,128
+  IP: 136
+physical fault:
+  Modbus: 333,854
+  TCP: 10,390
+DoS:
+  IP: 2,796,606
+  ICMP: 269,880
+  Modbus: 124,583
+  TCP: 3,595
+  ARP: 47
+anomaly:
+  ARP: 55
+  ICMP: 14
+MITM:
+  Modbus: 245,879
+  TCP: 6,990
+  ARP: 82
+  ICMP: 12
+
+================================================================================
+                   Fichier: Network datatset/csv/attack_4.csv                   
+================================================================================
+
+--- STATISTIQUES DE BASE ---
+Nombre total de lignes: 5,522,490
+Nombre de colonnes: 16
+
+Distribution des labels:
+  normal: 2,844,877 (51.51%)
+  DoS: 1,904,956 (34.49%)
+  MITM: 471,339 (8.53%)
+  physical fault: 301,287 (5.46%)
+  scan: 31 (0.00%)
+
+Valeurs manquantes (principales):
+  modbus_response: 3,637,071 (65.86%)
+  modbus_fn: 1,751,892 (31.72%)
+  sport: 1,172,305 (21.23%)
+  dport: 1,172,305 (21.23%)
+  flags: 1,172,305 (21.23%)
+
+--- ANALYSE TEMPORELLE ---
+Pas de données temporelles
+
+--- ANALYSE TOPOLOGIQUE ---
+IPs sources uniques: 8
+IPs destinations uniques: 8
+IPs sources manquantes: 439
+
+Distribution des protocoles:
+  Modbus: 3,770,598
+  ICMP: 1,171,866
+  TCP: 579,587
+  ARP: 439
+
+Top 10 des IPs les plus actives:
+  84.3.251.20: 2,856,359 paquets
+  84.3.251.103: 1,209,738 paquets
+  84.3.251.101: 604,529 paquets
+  84.3.251.102: 595,871 paquets
+  84.3.251.18: 235,437 paquets
+  84.3.251.105: 10,054 paquets
+  84.3.251.104: 10,026 paquets
+  84.3.251.110: 37 paquets
+
+--- PROTOCOLES PAR LABEL (top 3 labels) ---
+normal:
+  Modbus: 2,703,946
+  TCP: 140,931
+scan:
+  TCP: 31
+DoS:
+  ICMP: 1,171,858
+  TCP: 399,733
+  Modbus: 333,016
+  ARP: 349
+physical fault:
+  Modbus: 289,827
+  TCP: 11,460
+MITM:
+  Modbus: 443,809
+  TCP: 27,432
+  ARP: 90
+  ICMP: 8
+
+================================================================================
+                    Fichier: Network datatset/csv/normal.csv                    
+================================================================================
+
+--- STATISTIQUES DE BASE ---
+Nombre total de lignes: 7,757,289
+Nombre de colonnes: 16
+
+Distribution des labels:
+  normal: 7,757,289 (100.00%)
+
+Valeurs manquantes (principales):
+  modbus_response: 3,983,640 (51.35%)
+  modbus_fn: 210,243 (2.71%)
+
+--- ANALYSE TEMPORELLE ---
+Pas de données temporelles
+
+--- ANALYSE TOPOLOGIQUE ---
+IPs sources uniques: 7
+IPs destinations uniques: 7
+IPs sources manquantes: 0
+
+Distribution des protocoles:
+  Modbus: 7,547,046
+  TCP: 210,243
+
+Top 10 des IPs les plus actives:
+  84.3.251.20: 3,761,585 paquets
+  84.3.251.101: 1,200,522 paquets
+  84.3.251.102: 1,185,461 paquets
+  84.3.251.103: 1,176,141 paquets
+  84.3.251.18: 391,958 paquets
+  84.3.251.105: 20,818 paquets
+  84.3.251.104: 20,804 paquets
+
+--- PROTOCOLES PAR LABEL (top 3 labels) ---
+normal:
+  Modbus: 7,547,046
+  TCP: 210,243
+
+================================================================================
+                           PARTIE 2: PHYSICAL DATASET                           
+================================================================================
+
+================================================================================
+                    Fichier: Physical dataset/phy_att_1.csv                     
+================================================================================
+
+--- STATISTIQUES DE BASE ---
+Nombre total de lignes: 2,420
+Nombre de capteurs: 40
+
+Distribution des labels:
+  normal: 1,610 (66.53%)
+  MITM: 533 (22.02%)
+  physical fault: 277 (11.45%)
+
+--- ANALYSE TEMPORELLE ---
+Période: 2021-04-09 18:23:28 à 2021-04-09 19:03:47
+
+--- CAPTEURS ACTIFS PAR LABEL ---
+normal: 16 capteurs actifs détectés
+MITM: 16 capteurs actifs détectés
+physical fault: 16 capteurs actifs détectés
+
+================================================================================
+                    Fichier: Physical dataset/phy_att_2.csv                     
+================================================================================
+
+--- STATISTIQUES DE BASE ---
+Nombre total de lignes: 2,104
+Nombre de capteurs: 41
+
+Distribution des labels:
+  normal: 1,549 (73.62%)
+  nomal: 249 (11.83%)
+  physical fault: 123 (5.85%)
+  MITM: 96 (4.56%)
+  DoS: 80 (3.80%)
+  scan: 7 (0.33%)
+
+--- ANALYSE TEMPORELLE ---
+Période: 2021-04-19 15:37:12 à 2021-04-19 16:12:16
+
+--- CAPTEURS ACTIFS PAR LABEL ---
+normal: 16 capteurs actifs détectés
+scan: 16 capteurs actifs détectés
+DoS: 13 capteurs actifs détectés
+physical fault: 16 capteurs actifs détectés
+nomal: 16 capteurs actifs détectés
+MITM: 14 capteurs actifs détectés
+
+================================================================================
+                    Fichier: Physical dataset/phy_att_3.csv                     
+================================================================================
+
+--- STATISTIQUES DE BASE ---
+Nombre total de lignes: 1,254
+Nombre de capteurs: 40
+
+Distribution des labels:
+  normal: 911 (72.65%)
+  physical fault: 152 (12.12%)
+  MITM: 114 (9.09%)
+  DoS: 77 (6.14%)
+
+--- ANALYSE TEMPORELLE ---
+Période: 2021-04-09 19:42:12 à 2021-04-09 20:03:05
+
+--- CAPTEURS ACTIFS PAR LABEL ---
+normal: 16 capteurs actifs détectés
+physical fault: 16 capteurs actifs détectés
+DoS: 12 capteurs actifs détectés
+MITM: 15 capteurs actifs détectés
+
+================================================================================
+                    Fichier: Physical dataset/phy_att_4.csv                     
+================================================================================
+
+--- STATISTIQUES DE BASE ---
+Nombre total de lignes: 1,717
+Nombre de capteurs: 41
+
+Distribution des labels:
+  normal: 1,159 (67.50%)
+  MITM: 265 (15.43%)
+  DoS: 153 (8.91%)
+  physical fault: 133 (7.75%)
+  scan: 7 (0.41%)
+
+--- ANALYSE TEMPORELLE ---
+Pas de données temporelles
+
+--- CAPTEURS ACTIFS PAR LABEL ---
+normal: 17 capteurs actifs détectés
+scan: 14 capteurs actifs détectés
+DoS: 13 capteurs actifs détectés
+physical fault: 17 capteurs actifs détectés
+MITM: 17 capteurs actifs détectés
+
+================================================================================
+                     Fichier: Physical dataset/phy_norm.csv                     
+================================================================================
+
+--- STATISTIQUES DE BASE ---
+Nombre total de lignes: 3,428
+Nombre de capteurs: 40
+
+Distribution des labels:
+  normal: 3,428 (100.00%)
+
+--- ANALYSE TEMPORELLE ---
+Période: 2021-04-09 11:30:50 à 2021-04-09 12:27:57
+
+--- CAPTEURS ACTIFS PAR LABEL ---
+normal: 16 capteurs actifs détectés
+
+================================================================================
+                                SYNTHÈSE GLOBALE                                
+================================================================================
+
+Fichiers analysés:
+  Network: 5 fichiers, 29,829,204 lignes
+  Physical: 5 fichiers, 10,923 lignes
+
+Labels uniques trouvés: DoS, MITM, anomaly, nomal, normal, physical fault, scan
+
+Types d'analyses effectuées:
+  1. Distribution des labels et statistiques de base
+  2. Analyse temporelle (période, distribution horaire)
+  3. Topologie réseau (IPs, protocoles, top talkers)
+  4. Corrélation labels-protocoles (top 3 labels)
+  5. État des capteurs (Physical)
