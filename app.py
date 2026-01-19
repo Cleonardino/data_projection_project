@@ -1,21 +1,51 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+from src.summaries import load_experiments
 
-class ModelPage:
-    def __init__(self, title, icon, metrics, train_history):
+class ModelData:
+    def __init__(self, title : str, icon : str, metrics, train_history):
         self.title = title
         self.icon = icon
         self.metrics = metrics
         self.train_history = train_history
+    
+    def page_function(self):
+        st.title(self.title)
+        st.header("Training history")
+        st.write(self.train_history)
+        st.header("Metrics")
+        st.write(self.metrics)
 
+model_data : list[ModelData] = []
+
+experiments = load_experiments()
+
+for key in experiments:
+    # Create page for the experiment
+    model_data.append(ModelData(
+        key,
+        ":material/home:",
+        experiments[key]["metrics"],
+        experiments[key]["train_history"]
+        ))
+
+model_pages : list = []
+
+for model in model_data:
+    model_pages.append(st.Page(
+        model.page_function,
+        title=model.title,
+        icon=":material/database_search:"
+        ))
 
 navigation = st.navigation(
 	{
 		"General": [
 			st.Page("app/home.py", title="Home", icon=":material/home:"),
    			st.Page("app/data_overview.py", title="Data Overview", icon=":material/database_search:")
-		]
+		],
+		"Models": model_pages
 	}
 )
 
