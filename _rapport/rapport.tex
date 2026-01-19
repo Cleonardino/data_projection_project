@@ -27,12 +27,24 @@
 \definecolor{pale_yellow}{HTML}{F8E68C}
 \definecolor{pale_blue}{HTML}{97DAD9}
 
+\newcommand{\verticalquote}[1]{%
+    \begin{tikzpicture}[remember picture, overlay]
+        \draw[thick,black] (-0.5cm,0) -- (-0.5cm,-0.4cm);  % Ligne verticale
+    \end{tikzpicture}%
+    \hspace{0.5cm}\itshape#1}
+
 \usepackage{tikz}
 \newcommand{\colorboxsquare}[1]{\tikz \fill[#1] (0,0) rectangle (0.3,0.3);}
 
 \usepackage{csquotes}
-\usepackage{biblatex}
+\usepackage[
+    backend=biber,   % utilise biber au lieu de bibtex
+    style=numeric,   % citations numérotées
+    sorting=none     % ordre du .bib
+]{biblatex}
+
 \addbibresource{biblio.bib}
+
 \setlength{\bibitemsep}{\itemsep}
 \setlength{\bibparsep}{\parsep}
 
@@ -68,6 +80,8 @@
 \fairemarges
 
 \newpage
+\pagenumbering{roman} % réactiver la numérotation
+\setcounter{page}{1}  % réinitialiser le compteur de pages
 
 \tabledematieres
 \listoffigures
@@ -112,27 +126,27 @@ Le sujet de chaque fichier est résumé dans la \hyperref[tab:files]{Table 1}.
 	\centering
 	\begin{tabular}{|l|l|}
 		\hline
-		\multicolumn{1}{|c|}{\textbf{Fichier}} & \multicolumn{1}{|c|}{\textbf{Contenu}} \\
+		\textbf{Fichier} & \textbf{Contenu} \\
 		\hline
-		\mintinline{text}{normal.csv}  & Acquisitions du traffic réseau en période normale \\
+		\texttt{normal.csv}  & Acquisitions du traffic réseau en période normale \\
 		\hline
-		\mintinline{text}{phy_norm.csv}  & Acquisitions des mesures physiques en période normale \\
+		\texttt{phy\_norm.csv}  & Acquisitions des mesures physiques en période normale \\
 		\hline
-		\mintinline{text}{attack_1.csv}  & Première acquisition du traffic réseau avec anomalies \\
+		\texttt{attack\_1.csv}  & Première acquisition du traffic réseau avec anomalies \\
 		\hline
-		\mintinline{text}{dataset_att_1.csv}  & Première acquisition des mesures physiques avec anomalies \\
+		\texttt{dataset\_att\_1.csv}  & Première acquisition des mesures physiques avec anomalies \\
 		\hline
-		\mintinline{text}{attack_2.csv}  & Deuxième acquisition du traffic réseau avec anomalies \\
+		\texttt{attack\_2.csv}  & Deuxième acquisition du traffic réseau avec anomalies \\
 		\hline
-		\mintinline{text}{dataset_att_2.csv}  & Deuxième acquisition des mesures physiques avec anomalies \\
+		\texttt{dataset\_att\_2.csv}  & Deuxième acquisition des mesures physiques avec anomalies \\
 		\hline
-		\mintinline{text}{attack_3.csv}  & Troisième acquisition du traffic réseau avec anomalies \\
+		\texttt{attack\_3.csv}  & Troisième acquisition du traffic réseau avec anomalies \\
 		\hline
-		\mintinline{text}{dataset_att_3.csv}  & Troisième acquisition des mesures physiques avec anomalies \\
+		\texttt{dataset\_att\_3.csv}  & Troisième acquisition des mesures physiques avec anomalies \\
 		\hline
-		\mintinline{text}{attack_4.csv}  & Quatrième acquisition du traffic réseau avec anomalies \\
+		\texttt{attack\_4.csv}  & Quatrième acquisition du traffic réseau avec anomalies \\
 		\hline
-		\mintinline{text}{dataset_att_4.csv}  & Quatrième acquisition des mesures physiques avec anomalies \\
+		\texttt{dataset\_att\_4.csv}  & Quatrième acquisition des mesures physiques avec anomalies \\
 		\hline
 	\end{tabular}
 	\caption{Aperçu des fichiers de données fournis, d'après le fichier fourni \texttt{README.xlsx}}
@@ -145,12 +159,38 @@ Il y a également des fichiers packet capture (PCAP) fournis pour les données r
 
 \subsubsection{Présentation générale des données}
 
-Dans chaque fichier CSV, une ligne représente un ensemble de données collectées à un instant donné, tandis que les colonnes renvoient à différents mécanismes sur lesquels une mesure a été faite.
+Dans chaque fichier CSV, une ligne représente un ensemble de données collectées à un instant donné, tandis que les colonnes renvoient à différentes informations relevées ou différents dispositifs sur lesquels une mesure a été faite.
+Chaque ligne est associée à une étiquette (\texttt{label}) indiquant si les données correspondent à un état normal (étiquette \texttt{normal}) ou à une anomalie (étiquettes \texttt{DoS}, \texttt{MITM}, \texttt{scan} pour les données réseau et \texttt{physical fault} pour les données physiques).
 
 \myparagraph{Données physiques}
 
+En s'appuyant sur les informations fournies par \cite{article_reference}, on peut dénombrer les nombre de lignes pour chaque jeu de données physique comme présenté dans la \hyperref[fig:phys_number_entries]{Figure 1}.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.75\textwidth]{images/phys_number_entries.png}
+	\caption{Nombre d'entrées par fichier de données physiques d'après \cite{article_reference}}
+	\label{fig:phys_number_entries}
+\end{figure}
+
+On constate que le fichier \texttt{phy\_norm.csv} contient un total de \textbf{3 429} entrées, tandis que les fichiers d'attaques contiennent entre 1 2000 et 2 421 entrées chacun, et sont donc plus petits lorsque pris indépendamment.
+Cela est expliqué dans \cite{article_reference} par le fait que les périodes d'attaques sont plus courtes que la périodes normale qui a été relevée :
+
+\begin{table}[h!]
+	\centering
+	\resizebox{\textwidth}{!}{%
+	\begin{tabular}{|l}
+		\textit{Specifically, the first acquisition lasts 1 hour and shows a total of 12 process cycles: it} \\
+		\textit{refers to the WDT while working in normal conditions without any attack. On the} \\
+		\textit{contrary, the remaining three acquisitions, which last 60 minutes, provide 8, 7 and 4} \\
+		\textit{process cycles respectively.}
+	\end{tabular}
+	}
+	\label{tab:quote}
+\end{table}
+
 Les mesures physiques sont reportées toutes les secondes et concernent des paramètres tels que l'état des pompes, les valeurs de différents capteurs, etc.
-En tout, il y a 41 caractéristiques, présentées dans la \hyperref[tab:features]{Table 2} (une traduction du tableau original présent dans \cite{article_reference}).
+En tout, il y a 41 caractéristiques, présentées dans la \hyperref[tab:physical_features]{Table 2} (une traduction du tableau original présent dans \cite{article_reference}).
 
 \begin{table}[h!]
 	\centering
@@ -164,15 +204,23 @@ En tout, il y a 41 caractéristiques, présentées dans la \hyperref[tab:feature
 		20-41  & Valv\_i & État de l'électrovanne i (i allant de 1 à 22) \\ \hline
 	\end{tabular}
 	\caption{Caractéristiques des données physiques}
-	\label{tab:features}
+	\label{tab:physical_features}
 \end{table}
 
 \myparagraph{Données réseau}
 
-Au nombre de 14, les données réseau sont listées dans la \hyperref[tab:features]{Table 2} (une traduction du tableau original présent dans \cite{article_reference}).
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.75\textwidth]{images/net_number_entries.png}
+	\caption{Nombre d'entrées par fichier de données réseau d'après \cite{article_reference}}
+	\label{fig:net_number_entries}
+\end{figure}
+
+Au nombre de 14, les colonnes des données réseau sont listées dans la \hyperref[tab:network_features]{Table 3} (une traduction du tableau original présent dans \cite{article_reference}).
 
 \begin{table}[h!]
 	\centering
+	\resizebox{\textwidth}{!}{%
 	\begin{tabular}{|c|l|l|}
 		\hline
 		\textbf{N°} & \textbf{Nom} & \textbf{Description} \\ \hline
@@ -186,62 +234,39 @@ Au nombre de 14, les données réseau sont listées dans la \hyperref[tab:featur
 		8  & Proto & Protocole \\ \hline
 		9  & TCP flags & CWR | ECN | URG | ACK | PSH | RST | SYN | FIN flags \\ \hline
 		10 & Payload size & Taille de la charge utile \\ \hline
-		11 & MODBUS code & Code MODBUS \\ \hline
+		11 & MODBUS code & Code de fonction MODBUS \\ \hline
 		12 & MODBUS value & Valeur réponse MODBUS \\ \hline
 		13 & num\_pkts\_src & Nombre de paquets de la même addresse source durant les 2 dernières secondes \\ \hline
 		14 & num\_pkts\_dst & Nombre de paquets de la même addresse destination durant les 2 dernières secondes \\ \hline
 	\end{tabular}
+	}
 	\caption{Caractéristiques des données réseau}
-	\label{tab:features}
+	\label{tab:network_features}
 \end{table}
 	
-
 \subsubsection{Analyse des données}
 
 \subsection{Prétraitement}
 
-La pipeline actuelle de prétraitement des données est la suivante :
+L'ensemble des données est soumis a un prétraitement général avant d'être utilisé par les différents modèles :
 
 \begin{enumerate}
-	\item Charger les données brutes à partir de tous les fichiers CSV du jeu de données sélectionné (\textit{physical} ou \textit{network}).
-	\item Sous Echantillonage de l'ensemble des données pour ne pas travailler sur tout le dataset, mais sur un sous ensemble réduit.
-	\item Extraction des features et des labels.
-	\item Encodage des labels avec \textit{LabelEncoder} de \textit{scikit-learn}.
-	\item Stratification de l'ensemble des données en ensembles d'entraînement, de validation et de test avec \textit{train\_test\_split} de \textit{scikit-learn} avec les options de \textit{stratify} et \textit{shuffle} avec un ratio de 70\% - 15\% - 15\% pour l'ensemble d'entraînement, de validation et de test.
-	\item Application du balancing sur l'ensemble d'entraînement si activé :
-	\begin{itemize}
-		\item \textbf{OverSampling} avec \textit{SMOTE}
-		\item \textbf{OverSampling} avec \textit{RandomOverSampler}
-		\item \textbf{OverSampling} manuellement avec l'augmentation des données
-		\item \textbf{UnderSampling} avec \textit{RandomUnderSampler}
-		\item \textbf{UnderSampling} avec \textit{KNN for easy data}
-	\end{itemize}
-	\item Normalisation des données avec \textit{StandardScaler} de \textit{scikit-learn}
+	\item Les données brutes (physique et réseau) sont chargées depuis les différents fichiers CSV.
+	\item Les jeux de données étant particulièrement lourds, ils sont sous-échantillonnés pour permettre de travailler sur des sous-ensembles réduits.
+	\item Les caractéristiques et les labels sont extraits.
+	\item Les labels sont encodés avec \texttt{LabelEncoder} \cite{scikit-learn_labelencoder} de \texttt{scikit-learn} \cite{scikit-learn_article}, ce qui permet de convertir les étiquettes textuelles en valeurs numériques.
+	\item Les données sont stratifiées en ensembles d'entraînement, de validation et de test avec \texttt{train\_test\_split} \cite{scikit-learn_train_test_split} de \texttt{scikit-learn}, en utilisant les options de \texttt{stratify} et \texttt{shuffle} pour garantir une répartition équilibrée des classes dans chaque ensemble.
+		  Le ratio utilisé est de 70\% pour l'ensemble d'entraînement, 15\% pour l'ensemble de validation et 15\% pour l'ensemble de test.
+	\item Si le \textit{balancing} est activé, il est appliqué sur l'ensemble d'entraînement à l'aide de la fonction \texttt{RandomOverSampler} \cite{imbalanced-learn_randomoversampler} de la bibliothèque \texttt{imbalanced-learn} \cite{imbalanced-learn}.
+	% \item Si le balancing est activé, il est appliqué sur l'ensemble d'entraînement à l'aide de différentes techniques (notamment via des fonctions de la bibliothèque \texttt{imbalanced-learn} \cite{imbalanced-learn}) :
+	% \begin{itemize}
+		% \item \textbf{OverSampling} avec \texttt{SMOTE} \cite{imbalanced-learn_smote}
+		% \item \textbf{OverSampling} avec \texttt{RandomOverSampler} \cite{imbalanced-learn_randomoversampler}
+		% \item \textbf{OverSampling} manuellement avec l'augmentation des données
+		% \item \textbf{UnderSampling} avec \texttt{RandomUnderSampler} \cite{imbalanced-learn_randomundersampler}
+	% \end{itemize}
+	\item Enfin, les données sont normalisées avec \texttt{StandardScaler} de \texttt{scikit-learn} pour garantir que chaque caractéristique ait une moyenne nulle et une variance unitaire.
 \end{enumerate}
-
-\section{Application des algorithmes}
-
-\begin{itemize}
-    \item Organisation des modèles bien structurée
-    \item Scripts définissant la structure de chaque modèle dans le dossier \texttt{models/}.
-	\item Différentes configurations pour chaque modèle (hyperparamètres, datasets, taille des modèles, etc.) dans \texttt{configs/model\_type/config\_name.yaml}.
-	\item Scripts d'entraînement et de test dans \texttt{scripts/train.py} et \texttt{scripts/test.py}.
-	\item Les données sont pré-traitées en amont \textbf{de la même façon pour tous les types de modèles}.
-	\item Un système de cache est utilisé pour éviter de traiter à nouveau les données lors de nouvelles exécutions et sont enregistrées dans le dossier \texttt{cached\_datasets}.
-	\item Ensuite, les modèles sont entrainés individuellement avec le script \texttt{scripts/train.py} sur un fichier de config, ou alors il est aussi possible d'entraîner tous les modèles ou un groupe de modèles d'un coup avec le script \texttt{scripts/train\_all.py}.
-	\item Les résultats de chaque entraînement de chaque config de modèle sont enregistrés dans le dossier \texttt{experiments}.
-	\item Sont enregistrés pour chaque entraînement:
-	\begin{itemize}
-		\item les poids du meilleurs modèle
-		\item la configuration utilisée (au cas ou les configurations changent)
-		\item Les métriques sur le jeu de données d'entraînement, validation et test du meilleur modèle.
-		\item Les erreurs sur le jeu de données d'entraînement, validation et test du meilleur modèle.
-		\item Les courbes de loss et d'accuracy sur le jeu de donnée d'entraînement et de validation.
-	\end{itemize}
-	\item Un rapport récapitulatif de tous les entraînements est ensuite généré avec le script \texttt{src/analyze\_results.py} séparé pour le physical et le network datasets.
-\end{itemize}
-
-Pour les hyperparamètres, pour l'instant, ont juste été testés 2 tailles de modèles (small et medium) pour chaque dataset, et utilisés des bons learning rate et autres hyperparamètres par défaut, et de bons résultats ont été obtenus.
 
 \subsection{KNN}
 
@@ -263,7 +288,7 @@ Pour les hyperparamètres, pour l'instant, ont juste été testés 2 tailles de 
 
 \subsection{Données physiques}
 
-D'après les résultats présentés dans la \hyperref[tab:physical_small_results]{Table 3}, le modèle \texttt{small\_knn} obtient les meilleures performances sur le jeu de données \texttt{physical\_small}, avec une précision de \textbf{97,74\%}, un F1-macro de \textbf{0,8007}, une précision équilibrée de \textbf{0,8235} et un MCC de \textbf{0,9402}.
+D'après les résultats présentés dans la \hyperref[tab:physical_small_results]{Table 4}, le modèle \texttt{small\_knn} obtient les meilleures performances sur le jeu de données \texttt{physical\_small}, avec une précision de \textbf{97,74\%}, un F1-macro de \textbf{0,8007}, une précision équilibrée de \textbf{0,8235} et un MCC de \textbf{0,9402}.
 Le temps d'entraînement est également très faible (quasi-instantané), ce qui en fait un choix efficace pour ce type de données.
 À l'inverse, le modèle \texttt{small\_random\_forest} affiche les performances les plus faibles, ce qui peut s'expliquer par une répartition des classses TO COMPLETE.
 
@@ -289,7 +314,7 @@ Le temps d'entraînement est également très faible (quasi-instantané), ce qui
 \end{table}
 
 En comparant les résultats obtenus avec ceux de l'article de référence \cite{article_reference}, on constate que nos modèles TO COMPLETE.
-En effet dans la \hyperref[tab:results_physical]{Table 4}, on peut voir que les performances des KNN, Random Forest, SVM et Naive Bayes (NB) sont TO COMPLETE.
+En effet dans la \hyperref[tab:results_physical]{Table 5}, on peut voir que les performances des KNN, Random Forest, SVM et Naive Bayes (NB) sont TO COMPLETE.
 
 \begin{table}[ht]
 	\centering
@@ -318,7 +343,7 @@ Par exemple — et sasns surprise — le modèle MLP et le modèle MLP avec atte
 \end{figure}
 
 Comme il y a très peu de faible corrélations, il est raisonnable de penser que certains échantillons sont systématiquement mal classés par tous les modèles.
-La \hyperref[tab:misclassified_samples]{Table 5} liste les échantillons qui ont été mal classés par l'ensemble des modèles lors de nos différentes exécutions, ainsi que la prédiction majoritaire effectuée par les modèles pour ces échantillons.
+La \hyperref[tab:misclassified_samples]{Table 6} liste les échantillons qui ont été mal classés par l'ensemble des modèles lors de nos différentes exécutions, ainsi que la prédiction majoritaire effectuée par les modèles pour ces échantillons.
 Heureusement, on constate que leur nombre est très faible — seulement 17 échantillons sur un total de X — donc il n'y a pas beaucoup d'entrées réellement problématiques.
 
 On remarque que la majorité des échantillons mal classés appartiennent à la classe \texttt{normal}, ce qui indique que les modèles ont du mal à distinguer les échantillons normaux des anomalies dans certains cas.

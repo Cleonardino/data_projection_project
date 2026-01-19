@@ -41,7 +41,7 @@
   \fancyheadoffset{1cm}
   \setlength{\headheight}{2cm}
   \lhead{\includegraphics[width=2cm]{\logo}}
-  \chead{Rapport d'Apprentissage Automatique}
+  % \chead{Rapport d'Apprentissage Automatique}
   \rhead{\nouppercase{\leftmark}}
   \cfoot{\thepage}
 }
