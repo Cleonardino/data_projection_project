@@ -1,4 +1,4 @@
-from lib_sum_exp_results import load_experiments
+from src.lib_sum_exp_results import load_experiments
 
 # To complete
 
