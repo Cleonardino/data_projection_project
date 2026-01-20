@@ -6,6 +6,10 @@ _rapport/_minted-rapport
 *.pyc
 __pycache__
 *log*
-experiments
 cached_datasets
 *checkpoint*
+*.minted
+*.pt
+*.pkl
+*.ptl
+*.csv
