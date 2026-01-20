@@ -6,7 +6,7 @@ data:
   train_ratio: 0.7
   val_ratio: 0.15
   test_ratio: 0.15
-  balancing: smote
+  balancing: class_weights
   normalize: true
   seed: 42
 model:
@@ -15,7 +15,6 @@ model:
     n_estimators: 500
     max_depth: 20
     min_samples_split: 2
-    class_weight: balanced
 training:
   epochs: 200
   batch_size: 16

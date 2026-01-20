@@ -6,7 +6,7 @@ data:
   train_ratio: 0.7
   val_ratio: 0.15
   test_ratio: 0.15
-  balancing: smote
+  balancing: class_weights
   normalize: true
   seed: 42
 model:
