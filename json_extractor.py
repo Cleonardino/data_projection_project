@@ -222,8 +222,6 @@ class DatasetAnalyzer:
         
         return summary
 
-
-# Fonctions utilitaires pour Streamlit
 def load_analyzer(json_file: str = "analysis_results.json") -> DatasetAnalyzer:
     """Charge l'analyseur de données"""
     return DatasetAnalyzer(json_file)
