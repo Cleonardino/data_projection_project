@@ -20,10 +20,44 @@ from tqdm import tqdm
 from .base_model import BaseModel, TrainingHistory
 
 
+from xgboost.callback import TrainingCallback
+
+class XGBoostTqdmCallback(TrainingCallback):
+    """Callback to show tqdm progress bar during XGBoost training."""
+    
+    def __init__(self, total_rounds: int):
+        self.total_rounds = total_rounds
+        self.pbar = None
+
+    def before_training(self, model):
+        self.pbar = tqdm(total=self.total_rounds, desc="  Training", leave=False)
+        return model
+
+    def after_iteration(self, model, epoch, evals_log):
+        if self.pbar:
+            self.pbar.update(1)
+        return False
+
+    def after_training(self, model):
+        if self.pbar:
+            self.pbar.close()
+            self.pbar = None
+        return model
+
+    def __getstate__(self):
+        # Don't pickle the pbar attribute as it contains TextIOWrapper
+        state = self.__dict__.copy()
+        state['pbar'] = None
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+
+
 class XGBoostModel(BaseModel):
     """
     XGBoost gradient boosting classifier wrapper.
-
+    
     Hyperparameters (common options):
         - n_estimators: Number of boosting rounds (default: 100).
         - max_depth: Maximum tree depth (default: 6).
@@ -92,6 +126,13 @@ class XGBoostModel(BaseModel):
             params["objective"] = "multi:softprob"
             params["eval_metric"] = "mlogloss"
             params["num_class"] = n_classes
+
+        # Initialize callback
+        n_estimators = params.get("n_estimators", 100)
+        tqdm_callback = XGBoostTqdmCallback(n_estimators)
+        
+        # Add to params (XGBClassifier accepts callbacks in constructor)
+        params["callbacks"] = [tqdm_callback]
 
         self.model = xgb.XGBClassifier(**params)
 

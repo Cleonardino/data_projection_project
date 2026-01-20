@@ -1,0 +1,30 @@
+data:
+  balancing: oversampling_copy
+  dataset_type: physical
+  normalize: true
+  seed: 42
+  test_ratio: 0.15
+  train_ratio: 0.7
+  val_ratio: 0.15
+experiment:
+  name: physical_medium
+  save_history: true
+  save_model: true
+  save_predictions: true
+model:
+  hyperparameters:
+    d_token: 96
+    dropout: 0.15
+    n_heads: 8
+    n_layers: 3
+  name: ft_transformer
+training:
+  batch_size: 32
+  early_stopping: true
+  epochs: 50
+  learning_rate: 0.001
+  optimizer: adamw
+  patience: 5
+  scheduler: cosine
+  use_gpu: true
+  weight_decay: 0.0001
