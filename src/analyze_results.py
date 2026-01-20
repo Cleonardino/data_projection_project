@@ -29,6 +29,7 @@ import argparse
 import json
 import sys
 import shutil
+import os
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -308,6 +309,75 @@ def compute_model_correlation(errors: dict[str, pd.DataFrame]) -> pd.DataFrame:
             if sample_idx is not None and not row["is_correct"]:
                 error_matrix[i, sample_idx] = 1
 
+    # Filter out identical duplicates: for same model name AND identical error vector, keep only most recent
+    keep_indices = []
+    
+    # 1. Parse metadata for all experiments
+    exp_metadata = []
+    for idx, name in enumerate(exp_names):
+        parts = name.split('_')
+        timestamp_obj = datetime.min
+        clean_name = name
+        
+        # Parse timestamp if present (YYYY-MM-DD_HH-MM-SS)
+        if len(parts) >= 2 and parts[0][0].isdigit():
+            try:
+                ts_str = f"{parts[0]}_{parts[1]}" # YYYY-MM-DD_HH-MM-SS
+                timestamp_obj = datetime.strptime(ts_str, "%Y-%m-%d_%H-%M-%S")
+                # Clean name starts after timestamp
+                clean_name = "_".join(parts[2:])
+            except ValueError:
+                pass
+                
+        exp_metadata.append({
+            "index": idx,
+            "timestamp": timestamp_obj,
+            "clean_name": clean_name
+        })
+
+    # 2. Group by clean_name
+    groups = defaultdict(list)
+    for meta in exp_metadata:
+        groups[meta["clean_name"]].append(meta)
+
+    # 3. Identify indices to drop
+    indices_to_drop = set()
+    
+    for model_name, group in groups.items():
+        if len(group) < 2:
+            continue
+            
+        # Sort by timestamp descending (newest first)
+        group.sort(key=lambda x: x["timestamp"], reverse=True)
+        
+        # Keep the newest one always. Check others against kept ones.
+        kept_in_group = [group[0]] 
+        
+        for i in range(1, len(group)):
+            candidate = group[i]
+            candidate_vec = error_matrix[candidate["index"]]
+            
+            is_identical = False
+            for kept in kept_in_group:
+                kept_vec = error_matrix[kept["index"]]
+                if np.array_equal(candidate_vec, kept_vec):
+                    is_identical = True
+                    break
+            
+            if is_identical:
+                # It's identical to a newer run -> drop it
+                indices_to_drop.add(candidate["index"])
+            else:
+                # It's different -> keep it
+                kept_in_group.append(candidate)
+
+    # 4. Filter lists
+    if indices_to_drop:
+        valid_indices = [i for i in range(len(exp_names)) if i not in indices_to_drop]
+        exp_names = [exp_names[i] for i in valid_indices]
+        error_matrix = error_matrix[valid_indices]
+        print(f"  Dropped {len(indices_to_drop)} identical duplicate experiments from correlation analysis.")
+
     # Compute correlation
     # Using Jaccard similarity: intersection / union of errors
     n_models = len(exp_names)
@@ -326,17 +396,74 @@ def compute_model_correlation(errors: dict[str, pd.DataFrame]) -> pd.DataFrame:
             else:
                 correlation[i, j] = 1.0 if i == j else 0.0
 
-    # Shorten experiment names for display: remove date/time prefix, keep model name
-    # Format: YYYY-MM-DD_HH-MM-SS_dataset_size_model -> model
-    short_names = []
+    # Create cleaner labels for display
+    # 1. Remove timestamp (YYYY-MM-DD_HH-MM-SS)
+    # 2. Find common prefix to strip (like "physical_" or "network_")
+    # 3. Handle duplicates by prepending time
+    # 4. Sort by reversed name
+    
+    parsed_names = []
     for name in exp_names:
         parts = name.split('_')
-        if len(parts) > 4:
-             short_names.append(parts[-1])
-        else:
-            short_names.append(name)
+        timestamp = ""
+        clean_name = name
+        
+        # Check if starts with timestamp pattern (date_time_...)
+        if len(parts) >= 3 and parts[0][0].isdigit(): 
+            # Capture date and time part (MM-DD HH:MM) for disambiguation
+            # parts[0] is YYYY-MM-DD -> take MM-DD
+            date_parts = parts[0].split('-')
+            date_str = f"{date_parts[1]}-{date_parts[2]}" if len(date_parts) >= 3 else parts[0]
+            
+            # parts[1] is HH-MM-SS -> take HH-MM
+            time_parts = parts[1].split('-')
+            time_str = f"{time_parts[0]}:{time_parts[1]}" if len(time_parts) >= 2 else parts[1]
+            
+            timestamp = f"{date_str} {time_str}"
+                
+            # Join from index 2 onwards for clean name
+            clean_name = "_".join(parts[2:])
+        
+        parsed_names.append({"original": name, "timestamp": timestamp, "clean": clean_name})
 
-    return pd.DataFrame(correlation, index=short_names, columns=short_names)
+    # Find common prefix
+    all_clean = [p["clean"] for p in parsed_names]
+    if len(all_clean) > 1:
+        prefix = os.path.commonprefix(all_clean)
+        if prefix and prefix.endswith('_'):
+            for p in parsed_names:
+                p["short"] = p["clean"][len(prefix):]
+        else:
+            for p in parsed_names:
+                p["short"] = p["clean"]
+    else:
+        for p in parsed_names:
+            p["short"] = p["clean"]
+            
+    # Check for duplicates
+    name_counts = defaultdict(int)
+    for p in parsed_names:
+        name_counts[p["short"]] += 1
+        
+    # Finalize display names
+    for p in parsed_names:
+        if name_counts[p["short"]] > 1:
+            # Ambiguous: prepend timestamp
+            p["display"] = f"[{p['timestamp']}] {p['short']}"
+        else:
+            p["display"] = p["short"]
+            
+    # Sort by reversed display name
+    # e.g. "mlp_medium" -> "muidem_plm" (sorts by suffix first)
+    parsed_names.sort(key=lambda x: x["display"][::-1])
+    
+    # Reorder correlation matrix
+    sorted_indices = [exp_names.index(p["original"]) for p in parsed_names]
+    sorted_display_names = [p["display"] for p in parsed_names]
+    
+    sorted_correlation = correlation[sorted_indices, :][:, sorted_indices]
+
+    return pd.DataFrame(sorted_correlation, index=sorted_display_names, columns=sorted_display_names)
 
 
 def plot_training_curves(results: list[dict[str, Any]], output_dir: Path) -> list[Path]:
@@ -414,7 +541,8 @@ def plot_correlation_matrix(correlation_df: pd.DataFrame, output_path: Path) -> 
     if not HAS_PLOTTING or correlation_df.empty:
         return
 
-    fig, ax = plt.subplots(figsize=(10, 8))
+    # Increased figure size for readability
+    fig, ax = plt.subplots(figsize=(14, 12))
 
     sns.heatmap(
         correlation_df,
@@ -425,9 +553,16 @@ def plot_correlation_matrix(correlation_df: pd.DataFrame, output_path: Path) -> 
         vmax=1,
         ax=ax,
         square=True,
+        annot_kws={"size": 8},  # Smaller font for values
+        cbar_kws={"shrink": 0.8},
     )
 
     ax.set_title("Model Error Correlation\n(Jaccard similarity of misclassified samples)")
+    
+    # Rotate x labels to prevent overlap
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+    ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
+    
     plt.tight_layout()
     plt.savefig(output_path, dpi=150)
     plt.close()

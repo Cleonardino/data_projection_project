@@ -1,6 +1,6 @@
 # Analysis Report: Network Dataset
 
-Generated: 2026-01-20 22:18:18
+Generated: 2026-01-20 22:48:17
 
 ---
 
@@ -73,18 +73,18 @@ Which models make similar mistakes? (Jaccard similarity of error sets)
 
 **Correlation Matrix:**
 
-| Model | mlp | forest | xgboost | mlp | transformer | knn | transformer | xgboost | knn | forest |
+| Model | small_knn | medium_knn | small_mlp | small_attention_mlp | small_tab_transformer | small_ft_transformer | small_random_forest | medium_random_forest | small_xgboost | medium_xgboost |
 |-------|---|---|---|---|---|---|---|---|---|---|
-| mlp | 1.00 | 0.79 | 0.85 | 0.20 | 0.92 | 0.28 | 0.27 | 0.07 | 0.06 | 0.07 |
-| forest | 0.79 | 1.00 | 0.88 | 0.18 | 0.81 | 0.31 | 0.23 | 0.06 | 0.05 | 0.06 |
-| xgboost | 0.85 | 0.88 | 1.00 | 0.19 | 0.88 | 0.30 | 0.25 | 0.07 | 0.06 | 0.07 |
-| mlp | 0.20 | 0.18 | 0.19 | 1.00 | 0.20 | 0.11 | 0.39 | 0.14 | 0.09 | 0.14 |
-| transformer | 0.92 | 0.81 | 0.88 | 0.20 | 1.00 | 0.29 | 0.27 | 0.07 | 0.06 | 0.07 |
-| knn | 0.28 | 0.31 | 0.30 | 0.11 | 0.29 | 1.00 | 0.10 | 0.05 | 0.05 | 0.05 |
-| transformer | 0.27 | 0.23 | 0.25 | 0.39 | 0.27 | 0.10 | 1.00 | 0.18 | 0.11 | 0.19 |
-| xgboost | 0.07 | 0.06 | 0.07 | 0.14 | 0.07 | 0.05 | 0.18 | 1.00 | 0.12 | 0.97 |
-| knn | 0.06 | 0.05 | 0.06 | 0.09 | 0.06 | 0.05 | 0.11 | 0.12 | 1.00 | 0.12 |
-| forest | 0.07 | 0.06 | 0.07 | 0.14 | 0.07 | 0.05 | 0.19 | 0.97 | 0.12 | 1.00 |
+| small_knn | 1.00 | 0.05 | 0.28 | 0.11 | 0.10 | 0.29 | 0.31 | 0.05 | 0.30 | 0.05 |
+| medium_knn | 0.05 | 1.00 | 0.06 | 0.09 | 0.11 | 0.06 | 0.05 | 0.12 | 0.06 | 0.12 |
+| small_mlp | 0.28 | 0.06 | 1.00 | 0.20 | 0.27 | 0.92 | 0.79 | 0.07 | 0.85 | 0.07 |
+| small_attention_mlp | 0.11 | 0.09 | 0.20 | 1.00 | 0.39 | 0.20 | 0.18 | 0.14 | 0.19 | 0.14 |
+| small_tab_transformer | 0.10 | 0.11 | 0.27 | 0.39 | 1.00 | 0.27 | 0.23 | 0.19 | 0.25 | 0.18 |
+| small_ft_transformer | 0.29 | 0.06 | 0.92 | 0.20 | 0.27 | 1.00 | 0.81 | 0.07 | 0.88 | 0.07 |
+| small_random_forest | 0.31 | 0.05 | 0.79 | 0.18 | 0.23 | 0.81 | 1.00 | 0.06 | 0.88 | 0.06 |
+| medium_random_forest | 0.05 | 0.12 | 0.07 | 0.14 | 0.19 | 0.07 | 0.06 | 1.00 | 0.07 | 0.97 |
+| small_xgboost | 0.30 | 0.06 | 0.85 | 0.19 | 0.25 | 0.88 | 0.88 | 0.07 | 1.00 | 0.07 |
+| medium_xgboost | 0.05 | 0.12 | 0.07 | 0.14 | 0.18 | 0.07 | 0.06 | 0.97 | 0.07 | 1.00 |
 
 ![Correlation Heatmap](correlation/correlation_heatmap.png)
 
