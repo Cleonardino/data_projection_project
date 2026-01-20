@@ -163,6 +163,8 @@ def train(
     config_path: Path,
     model_override: str | None = None,
     experiments_dir: Path | None = None,
+    epochs_override: int | None = None,
+    balancing_override: str | None = None,
 ) -> Path:
     """
     Main training function.
@@ -171,6 +173,8 @@ def train(
         config_path: Path to YAML configuration file.
         model_override: Override model name from command line.
         experiments_dir: Custom experiments directory.
+        epochs_override: Override training epochs.
+        balancing_override: Override balancing strategy.
 
     Returns:
         Path to experiment folder.
@@ -184,6 +188,15 @@ def train(
     model_config: dict[str, Any] = config.get("model", {})
     training_config: dict[str, Any] = config.get("training", {})
     exp_config: dict[str, Any] = config.get("experiment", {})
+
+    # Apply overrides
+    if epochs_override is not None:
+        print(f"Overriding epochs: {epochs_override}")
+        training_config["epochs"] = epochs_override
+    
+    if balancing_override is not None:
+        print(f"Overriding balancing strategy: {balancing_override}")
+        data_config["balancing"] = balancing_override
 
     # Model selection (command line override takes precedence)
     model_name: str = model_override or model_config.get("name", "xgboost")
@@ -239,6 +252,16 @@ def train(
     model: BaseModel = get_model(model_name, hyperparameters)
     model.build(n_features=dataset.X_train.shape[1], n_classes=dataset.n_classes)
 
+    # Calculate class weights if requested
+    class_weights: dict[int, float] | None = None
+    balancing_strategy = data_config.get("balancing", "none")
+    
+    if balancing_strategy == "class_weights":
+        from lib_data import BalancingStrategy
+        print("\nComputing class weights for imbalanced data...")
+        class_weights = BalancingStrategy.get_class_weights(dataset.y_train)
+        print(f"  Weights: {class_weights}")
+
     # Train model
     print("\nTraining...")
     history: TrainingHistory = model.fit(
@@ -246,6 +269,7 @@ def train(
         y_train=dataset.y_train,
         X_val=dataset.X_val,
         y_val=dataset.y_val,
+        class_weights=class_weights,
     )
 
     print(f"Training completed in {history.training_time_seconds:.2f} seconds")
@@ -356,6 +380,20 @@ Examples:
         help="Custom experiments output directory",
     )
 
+    parser.add_argument(
+        "--epochs",
+        type=int,
+        default=None,
+        help="Override number of training epochs",
+    )
+
+    parser.add_argument(
+        "--balancing",
+        type=str,
+        default=None,
+        help="Override balancing strategy (e.g., 'class_weights')",
+    )
+
     return parser.parse_args()
 
 
@@ -371,6 +409,8 @@ def main() -> None:
         config_path=args.config,
         model_override=args.model,
         experiments_dir=args.experiments_dir,
+        epochs_override=args.epochs,
+        balancing_override=args.balancing,
     )
 
 

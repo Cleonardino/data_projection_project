@@ -1,0 +1,19 @@
+# MLP - Test Class Weights
+data:
+  dataset_type: network
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  balancing: class_weights
+  normalize: true
+  n_samples: 20000
+  nrows_per_file: 5000
+model:
+  name: mlp
+  hyperparameters:
+    hidden_layers: [64, 32]
+training:
+  epochs: 2
+  batch_size: 32
+experiment:
+  name: test_weights

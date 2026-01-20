@@ -81,6 +81,7 @@ class RandomForestModel(BaseModel):
         y_train: NDArray[np.int64],
         X_val: NDArray[np.float64] | None = None,
         y_val: NDArray[np.int64] | None = None,
+        class_weights: dict[int, float] | None = None,
     ) -> TrainingHistory:
         """
         Train Random Forest model.
@@ -90,12 +91,17 @@ class RandomForestModel(BaseModel):
             y_train: Training labels.
             X_val: Validation features.
             y_val: Validation labels.
+            class_weights: Optional dictionary of class weights.
 
         Returns:
             TrainingHistory with metrics.
         """
         history = TrainingHistory()
         start_time: float = time.time()
+
+        # Update class weights if provided
+        if class_weights is not None:
+            self.model.set_params(class_weight=class_weights)
 
         # Fit model
         self.model.fit(X_train, y_train)

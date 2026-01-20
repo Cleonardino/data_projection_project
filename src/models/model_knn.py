@@ -91,6 +91,7 @@ class KNNModel(BaseModel):
         y_train: NDArray[np.int64],
         X_val: NDArray[np.float64] | None = None,
         y_val: NDArray[np.int64] | None = None,
+        class_weights: dict[int, float] | None = None,
     ) -> TrainingHistory:
         """
         Train KNN model (stores training data).
@@ -100,6 +101,7 @@ class KNNModel(BaseModel):
             y_train: Training labels.
             X_val: Validation features (for accuracy computation).
             y_val: Validation labels.
+            class_weights: Optional dictionary of class weights (Ignored for KNN).
 
         Returns:
             TrainingHistory with metrics.

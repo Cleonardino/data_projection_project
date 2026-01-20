@@ -142,6 +142,7 @@ class XGBoostModel(BaseModel):
         y_train: NDArray[np.int64],
         X_val: NDArray[np.float64] | None = None,
         y_val: NDArray[np.int64] | None = None,
+        class_weights: dict[int, float] | None = None,
     ) -> TrainingHistory:
         """
         Train XGBoost model.
@@ -151,6 +152,7 @@ class XGBoostModel(BaseModel):
             y_train: Training labels.
             X_val: Validation features (used for early stopping if provided).
             y_val: Validation labels.
+            class_weights: Optional dictionary of class weights.
 
         Returns:
             TrainingHistory with training metrics.
@@ -163,9 +165,16 @@ class XGBoostModel(BaseModel):
         if X_val is not None and y_val is not None:
             eval_set = [(X_val, y_val)]
 
+        # Handle class weights -> sample weights
+        sample_weight = None
+        if class_weights is not None:
+            # Map weights to training samples
+            sample_weight = np.array([class_weights[y] for y in y_train])
+
         # Fit model
         self.model.fit(
             X_train, y_train,
+            sample_weight=sample_weight,
             eval_set=eval_set,
             verbose=False,
         )

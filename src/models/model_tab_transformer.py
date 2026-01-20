@@ -229,6 +229,7 @@ class TabTransformerModel(BaseModel):
         y_train: NDArray[np.int64],
         X_val: NDArray[np.float64] | None = None,
         y_val: NDArray[np.int64] | None = None,
+        class_weights: dict[int, float] | None = None,
     ) -> TrainingHistory:
         """Train TabTransformer model."""
         history = TrainingHistory()

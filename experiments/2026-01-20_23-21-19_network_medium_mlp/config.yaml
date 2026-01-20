@@ -1,0 +1,32 @@
+data:
+  balancing: class_weights
+  dataset_type: network
+  normalize: true
+  nrows_per_file: 500000
+  seed: 42
+  test_ratio: 0.15
+  train_ratio: 0.7
+  val_ratio: 0.15
+experiment:
+  name: network_medium
+  save_history: true
+  save_model: true
+  save_predictions: true
+model:
+  hyperparameters:
+    dropout: 0.3
+    hidden_layers:
+    - 256
+    - 128
+    - 64
+  name: mlp
+training:
+  batch_size: 256
+  early_stopping: true
+  epochs: 1
+  learning_rate: 0.0001
+  optimizer: adamw
+  patience: 5
+  scheduler: cosine
+  use_gpu: true
+  weight_decay: 0.001

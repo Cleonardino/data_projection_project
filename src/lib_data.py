@@ -1054,6 +1054,7 @@ def load_ml_ready_data(
         "undersampling_standard",
         "undersampling_easy_data",
         "smote",
+        "class_weights",
     ] = "none",
     normalize: bool = True,
     n_samples: int | None = None,

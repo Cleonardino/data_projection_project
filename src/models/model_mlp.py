@@ -154,6 +154,7 @@ class MLPModel(BaseModel):
         y_train: NDArray[np.int64],
         X_val: NDArray[np.float64] | None = None,
         y_val: NDArray[np.int64] | None = None,
+        class_weights: dict[int, float] | None = None,
     ) -> TrainingHistory:
         """
         Train MLP model.
@@ -163,6 +164,7 @@ class MLPModel(BaseModel):
             y_train: Training labels.
             X_val: Validation features.
             y_val: Validation labels.
+            class_weights: Optional dictionary of class weights.
 
         Returns:
             TrainingHistory with per-epoch metrics.
@@ -203,7 +205,14 @@ class MLPModel(BaseModel):
             val_loader = DataLoader(val_dataset, batch_size=params["batch_size"])
 
         # Loss and optimizer
-        criterion = nn.CrossEntropyLoss()
+        weight_tensor: torch.Tensor | None = None
+        if class_weights is not None:
+            # Convert dict to sorted tensor (index corresponds to class ID)
+            sorted_weights = [class_weights[i] for i in range(len(class_weights))]
+            weight_tensor = torch.FloatTensor(sorted_weights).to(self.device)
+            print(f"  Using class weights: {class_weights}")
+
+        criterion = nn.CrossEntropyLoss(weight=weight_tensor)
 
         optimizer_map: dict[str, type] = {
             "adam": optim.Adam,

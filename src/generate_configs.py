@@ -48,7 +48,7 @@ MODEL_HYPERPARAMS: dict[str, dict[str, dict[str, Any]]] = {
     "random_forest": {
         "small": {"n_estimators": 50, "max_depth": 6},
         "medium": {"n_estimators": 200, "max_depth": 12, "min_samples_split": 5},
-        "large": {"n_estimators": 500, "max_depth": 20, "min_samples_split": 2, "class_weight": "balanced"},
+        "large": {"n_estimators": 500, "max_depth": 20, "min_samples_split": 2},
     },
     "mlp": {
         "small": {"hidden_layers": [64, 32], "dropout": 0.2},
@@ -99,14 +99,14 @@ DATA_SETTINGS: dict[str, dict[str, dict[str, Any]]] = {
     "physical": {
         "small": {"n_samples": None, "balancing": "oversampling_copy"},
         "medium": {"n_samples": None, "balancing": "oversampling_copy"},
-        "large": {"n_samples": None, "balancing": "smote"},
+        "large": {"n_samples": None, "balancing": "class_weights"},
     },
     "network": {
         # Network files have time-ordered data with attacks appearing after ~50k rows
         # Must load enough rows per file to capture attack labels ('anomaly')
         "small": {"nrows_per_file": 300000, "balancing": "oversampling_copy"},  # ~500k rows total
         "medium": {"nrows_per_file": 500000, "balancing": "oversampling_copy"},  # ~2.5M rows
-        "large": {"nrows_per_file": 800000, "balancing": "smote"},  # Full dataset
+        "large": {"nrows_per_file": 800000, "balancing": "class_weights"},  # Full dataset
     },
 }
 

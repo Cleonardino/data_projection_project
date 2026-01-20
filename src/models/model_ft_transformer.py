@@ -221,6 +221,7 @@ class FTTransformerModel(BaseModel):
         y_train: NDArray[np.int64],
         X_val: NDArray[np.float64] | None = None,
         y_val: NDArray[np.int64] | None = None,
+        class_weights: dict[int, float] | None = None,
     ) -> TrainingHistory:
         """Train FT-Transformer model."""
         history = TrainingHistory()
@@ -245,7 +246,14 @@ class FTTransformerModel(BaseModel):
             val_dataset = TensorDataset(torch.FloatTensor(X_val), torch.LongTensor(y_val))
             val_loader = DataLoader(val_dataset, batch_size=params["batch_size"])
 
-        criterion = nn.CrossEntropyLoss()
+        # Loss with optional class weights
+        weight_tensor: torch.Tensor | None = None
+        if class_weights is not None:
+            sorted_weights = [class_weights[i] for i in range(len(class_weights))]
+            weight_tensor = torch.FloatTensor(sorted_weights).to(self.device)
+            print(f"  Using class weights: {class_weights}")
+
+        criterion = nn.CrossEntropyLoss(weight=weight_tensor)
         optimizer = optim.AdamW(
             self.model.parameters(),
             lr=params["learning_rate"],
