@@ -108,7 +108,7 @@ def load_experiment_results(experiments_dir: Path) -> list[dict[str, Any]]:
                 if part in ["network", "physical"]:
                     dataset_type = part
                     break
-        
+
         exp_name = config.get("experiment", {}).get("name", "unknown")
 
         results.append({
@@ -180,7 +180,7 @@ def load_error_files(results: list[dict[str, Any]]) -> dict[str, pd.DataFrame]:
     for exp in results:
         exp_folder = Path(exp["experiment_folder"])
         error_file = exp_folder / "test_errors.csv"
-        
+
         if error_file.exists():
             try:
                 df = pd.read_csv(error_file)
@@ -285,13 +285,13 @@ def compute_model_correlation(errors: dict[str, pd.DataFrame]) -> pd.DataFrame:
 
     sample_list = sorted(all_samples)
     sampling_needed = False
-    
+
     # Optimization: If we have > 50k samples, subsample for correlation to save memory/time
     if len(sample_list) > 50000:
         sampling_needed = True
         rng = np.random.RandomState(42)
         sample_list = sorted(rng.choice(sample_list, 50000, replace=False))
-        
+
     n_samples = len(sample_list)
     sample_to_idx = {s: i for i, s in enumerate(sample_list)}
 
@@ -303,7 +303,7 @@ def compute_model_correlation(errors: dict[str, pd.DataFrame]) -> pd.DataFrame:
         # Filter df to only samples we care about
         if sampling_needed:
              df = df[df['sample_idx'].isin(sample_to_idx.keys())]
-             
+
         for _, row in df.iterrows():
             sample_idx = sample_to_idx.get(row["sample_idx"])
             if sample_idx is not None and not row["is_correct"]:
@@ -311,14 +311,14 @@ def compute_model_correlation(errors: dict[str, pd.DataFrame]) -> pd.DataFrame:
 
     # Filter out identical duplicates: for same model name AND identical error vector, keep only most recent
     keep_indices = []
-    
+
     # 1. Parse metadata for all experiments
     exp_metadata = []
     for idx, name in enumerate(exp_names):
         parts = name.split('_')
         timestamp_obj = datetime.min
         clean_name = name
-        
+
         # Parse timestamp if present (YYYY-MM-DD_HH-MM-SS)
         if len(parts) >= 2 and parts[0][0].isdigit():
             try:
@@ -328,7 +328,7 @@ def compute_model_correlation(errors: dict[str, pd.DataFrame]) -> pd.DataFrame:
                 clean_name = "_".join(parts[2:])
             except ValueError:
                 pass
-                
+
         exp_metadata.append({
             "index": idx,
             "timestamp": timestamp_obj,
@@ -342,28 +342,28 @@ def compute_model_correlation(errors: dict[str, pd.DataFrame]) -> pd.DataFrame:
 
     # 3. Identify indices to drop
     indices_to_drop = set()
-    
+
     for model_name, group in groups.items():
         if len(group) < 2:
             continue
-            
+
         # Sort by timestamp descending (newest first)
         group.sort(key=lambda x: x["timestamp"], reverse=True)
-        
+
         # Keep the newest one always. Check others against kept ones.
-        kept_in_group = [group[0]] 
-        
+        kept_in_group = [group[0]]
+
         for i in range(1, len(group)):
             candidate = group[i]
             candidate_vec = error_matrix[candidate["index"]]
-            
+
             is_identical = False
             for kept in kept_in_group:
                 kept_vec = error_matrix[kept["index"]]
                 if np.array_equal(candidate_vec, kept_vec):
                     is_identical = True
                     break
-            
+
             if is_identical:
                 # It's identical to a newer run -> drop it
                 indices_to_drop.add(candidate["index"])
@@ -401,29 +401,29 @@ def compute_model_correlation(errors: dict[str, pd.DataFrame]) -> pd.DataFrame:
     # 2. Find common prefix to strip (like "physical_" or "network_")
     # 3. Handle duplicates by prepending time
     # 4. Sort by reversed name
-    
+
     parsed_names = []
     for name in exp_names:
         parts = name.split('_')
         timestamp = ""
         clean_name = name
-        
+
         # Check if starts with timestamp pattern (date_time_...)
-        if len(parts) >= 3 and parts[0][0].isdigit(): 
+        if len(parts) >= 3 and parts[0][0].isdigit():
             # Capture date and time part (MM-DD HH:MM) for disambiguation
             # parts[0] is YYYY-MM-DD -> take MM-DD
             date_parts = parts[0].split('-')
             date_str = f"{date_parts[1]}-{date_parts[2]}" if len(date_parts) >= 3 else parts[0]
-            
+
             # parts[1] is HH-MM-SS -> take HH-MM
             time_parts = parts[1].split('-')
             time_str = f"{time_parts[0]}:{time_parts[1]}" if len(time_parts) >= 2 else parts[1]
-            
+
             timestamp = f"{date_str} {time_str}"
-                
+
             # Join from index 2 onwards for clean name
             clean_name = "_".join(parts[2:])
-        
+
         parsed_names.append({"original": name, "timestamp": timestamp, "clean": clean_name})
 
     # Find common prefix
@@ -439,12 +439,12 @@ def compute_model_correlation(errors: dict[str, pd.DataFrame]) -> pd.DataFrame:
     else:
         for p in parsed_names:
             p["short"] = p["clean"]
-            
+
     # Check for duplicates
     name_counts = defaultdict(int)
     for p in parsed_names:
         name_counts[p["short"]] += 1
-        
+
     # Finalize display names
     for p in parsed_names:
         if name_counts[p["short"]] > 1:
@@ -452,15 +452,15 @@ def compute_model_correlation(errors: dict[str, pd.DataFrame]) -> pd.DataFrame:
             p["display"] = f"[{p['timestamp']}] {p['short']}"
         else:
             p["display"] = p["short"]
-            
+
     # Sort by reversed display name
     # e.g. "mlp_medium" -> "muidem_plm" (sorts by suffix first)
     parsed_names.sort(key=lambda x: x["display"][::-1])
-    
+
     # Reorder correlation matrix
     sorted_indices = [exp_names.index(p["original"]) for p in parsed_names]
     sorted_display_names = [p["display"] for p in parsed_names]
-    
+
     sorted_correlation = correlation[sorted_indices, :][:, sorted_indices]
 
     return pd.DataFrame(sorted_correlation, index=sorted_display_names, columns=sorted_display_names)
@@ -486,7 +486,7 @@ def plot_training_curves(results: list[dict[str, Any]], output_dir: Path) -> lis
     for exp in results:
         exp_folder = Path(exp["experiment_folder"])
         history_file = exp_folder / "training_history.csv"
-        
+
         if not history_file.exists():
             continue
 
@@ -496,7 +496,7 @@ def plot_training_curves(results: list[dict[str, Any]], output_dir: Path) -> lis
                 continue
 
             fig, axes = plt.subplots(1, 2, figsize=(12, 4))
-            
+
             # Use concise title
             plot_title = f"{exp['model']} ({exp['dataset']})"
 
@@ -558,11 +558,11 @@ def plot_correlation_matrix(correlation_df: pd.DataFrame, output_path: Path) -> 
     )
 
     ax.set_title("Model Error Correlation\n(Jaccard similarity of misclassified samples)")
-    
+
     # Rotate x labels to prevent overlap
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
     ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
-    
+
     plt.tight_layout()
     plt.savefig(output_path, dpi=150)
     plt.close()
@@ -608,7 +608,7 @@ def generate_report(
         if len(leaderboard) > 0:
             # Simplified table for markdown
             table_cols = ["Experiment Name", "Accuracy", "F1 (macro)", "Balanced Acc", "MCC", "Time (s)"]
-            
+
             # Map dataframe cols to table cols
             if "Dataset" in leaderboard.columns:
                 leaderboard = leaderboard.drop(columns=["Dataset"])
@@ -699,19 +699,19 @@ def generate_report(
 
 
 def run_analysis_for_dataset(
-    dataset_name: str, 
-    results: list[dict[str, Any]], 
+    dataset_name: str,
+    results: list[dict[str, Any]],
     base_output_dir: Path
 ) -> None:
     """
     Run full analysis pipeline for a single dataset.
     """
     print(f"\n--- Analyzing Dataset: {dataset_name} ({len(results)} experiments) ---")
-    
+
     # Create output directory for this dataset
     output_dir = base_output_dir / dataset_name
     output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     curves_dir = output_dir / "training_curves"
     correlation_dir = output_dir / "correlation"
     curves_dir.mkdir(exist_ok=True)
@@ -721,11 +721,11 @@ def run_analysis_for_dataset(
     print(f"Creating leaderboard for {dataset_name}...")
     leaderboard = create_leaderboard(results)
     leaderboard.to_csv(output_dir / "leaderboard.csv", index=True)
-    
+
     # 2. errors
     print(f"Loading errors for {dataset_name}...")
     errors = load_error_files(results)
-    
+
     # 3. hard samples
     print(f"Analyzing hard samples for {dataset_name}...")
     hard_samples, hard_classes = analyze_hard_samples(errors)
@@ -733,18 +733,18 @@ def run_analysis_for_dataset(
         hard_samples.to_csv(output_dir / "hard_samples.csv", index=False)
     if len(hard_classes) > 0:
         hard_classes.to_csv(output_dir / "hard_classes.csv", index=False)
-        
+
     # 4. correlation
     print(f"Computing correlation for {dataset_name}...")
     correlation = compute_model_correlation(errors)
     if len(correlation) > 0:
         correlation.to_csv(correlation_dir / "correlation_matrix.csv")
         plot_correlation_matrix(correlation, correlation_dir / "correlation_heatmap.png")
-        
+
     # 5. curves
     print(f"Plotting curves for {dataset_name}...")
     training_curves = plot_training_curves(results, curves_dir)
-    
+
     # 6. report
     print(f"Generating report for {dataset_name}...")
     report_path = generate_report(
@@ -791,7 +791,7 @@ def analyze_results(
     for res in all_results:
         dataset = res.get("dataset", "unknown")
         grouped_results[dataset].append(res)
-    
+
     print(f"  Datasets found: {list(grouped_results.keys())}")
 
     # Run analysis for each dataset
