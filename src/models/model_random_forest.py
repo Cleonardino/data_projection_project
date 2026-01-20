@@ -14,6 +14,7 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 from sklearn.ensemble import RandomForestClassifier
+from tqdm import tqdm
 
 from .base_model import BaseModel, TrainingHistory
 
@@ -103,12 +104,12 @@ class RandomForestModel(BaseModel):
         history.training_time_seconds = time.time() - start_time
 
         # Compute accuracies
-        train_pred: NDArray[np.int64] = self.model.predict(X_train)
+        train_pred: NDArray[np.int64] = self._predict_batched(X_train)
         train_acc: float = float(np.mean(train_pred == y_train))
         history.train_accuracy = [train_acc]
 
         if X_val is not None and y_val is not None:
-            val_pred: NDArray[np.int64] = self.model.predict(X_val)
+            val_pred: NDArray[np.int64] = self._predict_batched(X_val)
             val_acc: float = float(np.mean(val_pred == y_val))
             history.val_accuracy = [val_acc]
 
@@ -118,13 +119,45 @@ class RandomForestModel(BaseModel):
 
         return history
 
+    def _predict_batched(self, X: NDArray[np.float64], batch_size: int = 10000) -> NDArray[np.int64]:
+        """
+        Helper to predict in batches to manage memory and show progress.
+        """
+        n_samples = X.shape[0]
+        predictions = []
+
+        # Only use progress bar if enough samples
+        disable_tqdm = n_samples < batch_size
+
+        with tqdm(total=n_samples, desc="  Predicting", leave=False, disable=disable_tqdm) as pbar:
+            for i in range(0, n_samples, batch_size):
+                batch_end = min(i + batch_size, n_samples)
+                batch_pred = self.model.predict(X[i:batch_end])
+                predictions.append(batch_pred)
+                pbar.update(batch_end - i)
+
+        return np.concatenate(predictions).astype(np.int64)
+
     def predict(self, X: NDArray[np.float64]) -> NDArray[np.int64]:
         """Predict class labels."""
-        return self.model.predict(X).astype(np.int64)
+        return self._predict_batched(X)
 
-    def predict_proba(self, X: NDArray[np.float64]) -> NDArray[np.float64]:
+    def predict_proba(self, X: NDArray[np.float64], batch_size: int = 10000) -> NDArray[np.float64]:
         """Predict class probabilities."""
-        return self.model.predict_proba(X).astype(np.float64)
+        n_samples = X.shape[0]
+        probabilities = []
+
+        # Only use progress bar if enough samples
+        disable_tqdm = n_samples < batch_size
+
+        with tqdm(total=n_samples, desc="  Predicting Proba", leave=False, disable=disable_tqdm) as pbar:
+            for i in range(0, n_samples, batch_size):
+                batch_end = min(i + batch_size, n_samples)
+                batch_proba = self.model.predict_proba(X[i:batch_end])
+                probabilities.append(batch_proba)
+                pbar.update(batch_end - i)
+
+        return np.concatenate(probabilities).astype(np.float64)
 
     def save(self, path: Path) -> None:
         """Save model to file."""
