@@ -268,23 +268,21 @@ L'ensemble des données est soumis a un pré-traitement général avant d'être 
 
 Parmi les modèles demandés, les suivants ont été implémentés :
 \begin{itemize}
-    \item KNN
-    \item Random Forest
-    \item XGBoost
-    \item MLP
+    \item KNN (en \texttt{small} et \texttt{medium})
+    \item Random Forest (en \texttt{small} et \texttt{medium})
+    \item XGBoost (en \texttt{small} et \texttt{medium})
+    \item MLP (en \texttt{small})
 \end{itemize}
 
 Le modèle CART n'a pas été implémenté, mais a été remplacé par des modèles basés sur des architectures de transformers adaptées aux données tabulaires :
 
 \begin{itemize}
-	\item Tab Transformer : TO COMPLETE
-	\item FT Transformer : TO COMPLETE
-	\item MLP avec attention : même architecture que le MLP classique, mais avec un mécanisme d'attention ajouté.
+	\item Tab Transformer (en \texttt{small}) : TO COMPLETE
+	\item FT Transformer (en \texttt{small}) : TO COMPLETE
+	\item MLP avec attention (en \texttt{small}) : même architecture que le MLP classique, mais avec un mécanisme d'attention ajouté.
 \end{itemize}
 
 \subsection{Organisation des entraînements}
-
-% À réviser, actuellement généré par IA
 
 L'ensemble du code est organisé pour permettre une expérimentation facile et reproductible des différents modèles sur les deux types de données.
 
@@ -306,7 +304,7 @@ La différence principale entre elles réside dans le nombre de couches et de ne
 Par exemple, pour le MLP, le modèle \texttt{small} utilise 2 couches cachées avec 32 et 64 neurones, tandis que le modèle \texttt{medium} utilise 3 couches cachées de 64, 128 et 256 neurones.
 
 % Brouillon
-Pour les hyperparamètres, pour l'instant, ont juste été testés 2 tailles de modèles (small et medium) pour chaque dataset, et utilisés des bons learning rate et autres hyperparamètres par défaut, et de bons résultats ont été obtenus.
+BROUILLON : Pour les hyperparamètres, pour l'instant, ont juste été testés 2 tailles de modèles (small et medium) pour chaque dataset, et utilisés des bons learning rate et autres hyperparamètres par défaut, et de bons résultats ont été obtenus.
 
 
 % ============= BROUILLON =============
@@ -389,7 +387,7 @@ Par exemple — et sasns surprise — le modèle MLP et le modèle MLP avec atte
 \end{figure}
 
 Comme il y a très peu de faible corrélations, il est raisonnable de penser que certains échantillons sont systématiquement mal classés par tous les modèles.
-La \hyperref[tab:misclassified_samples]{Table 6} liste les échantillons qui ont été mal classés par l'ensemble des modèles lors de nos différentes exécutions, ainsi que la prédiction majoritaire effectuée par les modèles pour ces échantillons.
+La \hyperref[tab:misclassified_samples_physical]{Table 6} liste les échantillons qui ont été mal classés par l'ensemble des modèles lors de nos différentes exécutions, ainsi que la prédiction majoritaire effectuée par les modèles pour ces échantillons.
 Heureusement, on constate que leur nombre est très faible — seulement 17 échantillons sur un total de X — donc il n'y a pas beaucoup d'entrées réellement problématiques.
 
 On remarque que la majorité des échantillons mal classés appartiennent à la classe \texttt{normal}, ce qui indique que les modèles ont du mal à distinguer les échantillons normaux des anomalies dans certains cas.
@@ -403,31 +401,31 @@ De même, l'étiquiette \texttt{scan} est plusieurs fois prédite de manière er
 		\hline
 		\textbf{Entrée} & \textbf{Label réel} & \textbf{Nombre d'erreurs} & \textbf{Prédiction majoritaire} \\
 		\hline
-		5    & normal & 7 & MITM \\
-		35   & normal & 7 & MITM \\
-		36   & scan   & 7 & normal \\
-		210  & normal & 7 & MITM \\
-		466  & normal & 7 & DoS \\
-		598  & normal & 7 & scan \\
-		768  & normal & 7 & physical fault \\
-		848  & normal & 7 & physical fault \\
-		864  & normal & 7 & scan \\
-		892  & normal & 7 & DoS \\
-		927  & normal & 7 & MITM \\
-		1104 & normal & 7 & MITM \\
-		1203 & normal & 7 & scan \\
-		1257 & normal & 7 & physical fault \\
-		1549 & scan   & 7 & normal \\
-		1559 & normal & 7 & physical fault \\
-		1628 & normal & 7 & MITM \\
+		36   & scan   & 10 & normal \\
+		768  & normal & 10 & physical fault \\
+		848  & normal & 10 & physical fault \\
+		927  & normal & 10 & MITM \\
+		1257 & normal & 10 & physical fault \\
+		1549 & scan   & 10 & normal \\
 		\hline
 	\end{tabular}
-	\caption{Échantillons systématiquement mal classés lors des différentes exécutions}
-	\label{tab:misclassified_samples}
+	\caption{Échantillons physiques systématiquement mal classés lors des différentes exécutions}
+	\label{tab:misclassified_samples_physical}
 \end{table}
 
-
-
+% TO MODIFY
+\begin{table}[H]
+	\centering
+	\begin{tabular}{c l c l}
+		\hline
+		\textbf{Entrée} & \textbf{Label réel} & \textbf{Nombre d'erreurs} & \textbf{Prédiction majoritaire} \\
+		\hline
+		TO COMPLETE & TO COMPLETE & TO COMPLETE & TO COMPLETE \\
+		\hline
+	\end{tabular}
+	\caption{20 échantillons réseau systématiquement mal classés lors des différentes exécutions}
+	\label{tab:misclassified_network}
+\end{table}
 
 \section*{Conclusion}
 

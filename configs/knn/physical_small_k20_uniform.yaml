@@ -1,0 +1,31 @@
+# KNN - Physical Data - Small Config - Variation 3
+# K=20 with Uniform Weighting (high smoothing)
+
+data:
+  dataset_type: physical
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  balancing: oversampling_copy
+  normalize: true
+  seed: 42
+model:
+  name: knn
+  hyperparameters:
+    n_neighbors: 20
+    weights: uniform
+training:
+  epochs: 20
+  batch_size: 64
+  learning_rate: 0.002
+  optimizer: adamw
+  weight_decay: 0.0001
+  scheduler: cosine
+  early_stopping: true
+  patience: 5
+  use_gpu: true
+experiment:
+  name: physical_small_k20_uniform
+  save_predictions: true
+  save_history: true
+  save_model: true
