@@ -248,7 +248,7 @@ Au nombre de 14, les colonnes des données réseau sont listées dans la \hyperr
 
 \subsection{Prétraitement}
 
-L'ensemble des données est soumis a un prétraitement général avant d'être utilisé par les différents modèles :
+L'ensemble des données est soumis a un pré-traitement général avant d'être utilisé par les différents modèles :
 
 \begin{enumerate}
 	\item Les données brutes (physique et réseau) sont chargées depuis les différents fichiers CSV.
@@ -268,21 +268,61 @@ L'ensemble des données est soumis a un prétraitement général avant d'être u
 	\item Enfin, les données sont normalisées avec \texttt{StandardScaler} de \texttt{scikit-learn} pour garantir que chaque caractéristique ait une moyenne nulle et une variance unitaire.
 \end{enumerate}
 
-\subsection{KNN}
+\section{Application des algorithmes}
 
-\subsection{Random Forest}
+\subsection{Algorithmes utilisés}
 
-\subsection{XGBoost}
+Parmi les modèles demandés, les suivants ont été implémentés :
+\begin{itemize}
+    \item KNN
+    \item Random Forest
+    \item XGBoost
+    \item MLP
+    \item Modèles de transformers
+\end{itemize}
 
-\subsection{MLP}
+Le modèle CART n'a pas été implémenté, mais a été remplacé par des modèles basés sur des architectures de transformers adaptées aux données tabulaires :
 
-\subsection{Modèles de transformers}
+\begin{itemize}
+	\item Tab Transformer : TO COMPLETE
+	\item FT Transformer : TO COMPLETE
+	\item MLP avec attention : même architecture que le MLP classique, mais avec un mécanisme d'attention ajouté.
+\end{itemize}
 
-\subsubsection{Tab Transformer}
+\subsection{Organisation des entraînements}
 
-\subsubsection{FT Transformer}
+% À réviser, actuellement généré par IA
 
-\subsubsection{MLP avec attention}
+L'ensemble du code est organisé pour permettre une expérimentation facile et reproductible des différents modèles sur les deux types de données (physiques et réseau).
+Chaque modèle est défini dans un script séparé contenu dans un dossier \texttt{models/}, avec des configurations spécifiques pour chaque type de modèle.
+Les données sont pré-traitées de manière cohérente pour tous les modèles, et un système de cache est mis en place pour éviter de répéter le pré-traitement lors de nouvelles exécutions.
+Les résultats de chaque entraînement sont enregistrés de manière structurée, permettant une analyse et une comparaison faciles des performances des modèles.
+
+\subsection{Hyperparamères et résultats}
+
+% ============= BROUILLON =============
+\begin{itemize}
+    \item Organisation des modèles bien structurée
+    \item Scripts définissant la structure de chaque modèle dans le dossier \texttt{models/}.
+	\item Différentes configurations pour chaque modèle (hyperparamètres, datasets, taille des modèles, etc.) dans \texttt{configs/model\_type/config\_name.yaml}.
+	\item Scripts d'entraînement et de test dans \texttt{scripts/train.py} et \texttt{scripts/test.py}.
+	\item Les données sont pré-traitées en amont \textbf{de la même façon pour tous les types de modèles}.
+	\item Un système de cache est utilisé pour éviter de traiter à nouveau les données lors de nouvelles exécutions et sont enregistrées dans le dossier \texttt{cached\_datasets}.
+	\item Ensuite, les modèles sont entrainés individuellement avec le script \texttt{scripts/train.py} sur un fichier de config, ou alors il est aussi possible d'entraîner tous les modèles ou un groupe de modèles d'un coup avec le script \texttt{scripts/train\_all.py}.
+	\item Les résultats de chaque entraînement de chaque config de modèle sont enregistrés dans le dossier \texttt{experiments}.
+	\item Sont enregistrés pour chaque entraînement:
+	\begin{itemize}
+		\item les poids du meilleurs modèle
+		\item la configuration utilisée (au cas ou les configurations changent)
+		\item Les métriques sur le jeu de données d'entraînement, validation et test du meilleur modèle.
+		\item Les erreurs sur le jeu de données d'entraînement, validation et test du meilleur modèle.
+		\item Les courbes de loss et d'accuracy sur le jeu de donnée d'entraînement et de validation.
+	\end{itemize}
+	\item Un rapport récapitulatif de tous les entraînements est ensuite généré avec le script \texttt{src/analyze\_results.py} séparé pour le physical et le network datasets.
+\end{itemize}
+%
+Pour les hyperparamètres, pour l'instant, ont juste été testés 2 tailles de modèles (small et medium) pour chaque dataset, et utilisés des bons learning rate et autres hyperparamètres par défaut, et de bons résultats ont été obtenus.
+% ================= FIN BROUILLON =============
 
 \section{Évaluation et comparaison avec les données de référence}
 
