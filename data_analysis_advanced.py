@@ -3,6 +3,7 @@ import numpy as np
 from collections import Counter
 from datetime import datetime
 import os
+import json
 
 dataset_dir = "./dataset/"
 output_file = "analysis_results.txt"
@@ -89,7 +90,6 @@ def analyze_file_complete(file, dataset_type):
             
             results['total_rows'] += len(chunk)
             
-            # Afficher la progression après mise à jour du compteur
             if chunk_count % 5 == 0:
                 print(f"    • Chunk {chunk_count} traité ({results['total_rows']:,} lignes)")
             
@@ -140,7 +140,7 @@ def analyze_file_complete(file, dataset_type):
                 if 'proto' in chunk.columns:
                     results['protocol_distribution'].update(chunk['proto'].value_counts().to_dict())
                     
-                    # Protocoles par label (simplifié - top 3 labels seulement)
+                    # Protocoles par label
                     if 'label' in chunk.columns:
                         top_labels = chunk['label'].value_counts().head(3).index
                         for label in top_labels:
@@ -149,18 +149,18 @@ def analyze_file_complete(file, dataset_type):
                             label_data = chunk[chunk['label'] == label]
                             results['protocols_by_label'][label].update(label_data['proto'].value_counts().to_dict())
             
-            # Physical specific (simplifié)
+            # Physical specific
             elif dataset_type == 'physical':
                 if 'label' in chunk.columns:
                     sensor_cols = [col for col in chunk.columns if col not in ['Time', 'label', 'Label_n']]
                     
-                    # Compter capteurs actifs par label (au lieu de tous les détails)
+                    # Compter capteurs actifs par label
                     for label in chunk['label'].unique():
                         if label not in results['active_sensors_by_label']:
                             results['active_sensors_by_label'][label] = set()
                         
                         label_data = chunk[chunk['label'] == label]
-                        for col in sensor_cols[:20]:  # Limiter aux 20 premiers capteurs
+                        for col in sensor_cols[:20]:
                             # Vérifier si le capteur est actif dans ce chunk
                             try:
                                 if pd.api.types.is_bool_dtype(label_data[col]):
@@ -173,48 +173,9 @@ def analyze_file_complete(file, dataset_type):
                                 pass
     
     except Exception as e:
-        print(f"  ⚠️ Erreur lors de l'analyse: {str(e)}")
-        print(f"  → Tentative avec un encodage différent...")
-        
-        # Réessayer avec un encodage différent
-        try:
-            alt_encoding = "utf-8" if encoding != "utf-8" else "latin1"
-            chunk_count = 0
-            for chunk in pd.read_csv(
-                dataset_dir + file, 
-                sep=sep, 
-                encoding=alt_encoding, 
-                engine="python", 
-                chunksize=CHUNK_SIZE,
-                on_bad_lines='skip'
-            ):
-                chunk_count += 1
-                
-                # Normalisation basique
-                if "Physical dataset" in file:
-                    chunk = chunk.rename(columns={"Label": "label"})
-                chunk.columns = chunk.columns.str.strip()
-                
-                if results['columns'] is None:
-                    results['columns'] = chunk.columns.tolist()
-                    results['missing_values'] = {col: 0 for col in results['columns']}
-                
-                results['total_rows'] += len(chunk)
-                
-                # Afficher après mise à jour
-                if chunk_count % 5 == 0:
-                    print(f"    • Chunk {chunk_count} traité ({results['total_rows']:,} lignes)")
-                
-                if 'label' in chunk.columns:
-                    chunk["label"] = chunk["label"].astype("category")
-                    results['label_distribution'].update(chunk["label"].value_counts().to_dict())
-            
-            print(f"  ✓ Analyse réussie avec encodage alternatif: {alt_encoding}")
-        except Exception as e2:
-            print(f"  ❌ Impossible d'analyser ce fichier: {str(e2)}")
-            return results
+        print(f"Erreur lors de l'analyse: {str(e)}")
     
-    print(f"  ✓ Analyse terminée : {results['total_rows']:,} lignes analysées")
+    print(f"Analyse terminée : {results['total_rows']:,} lignes analysées")
     
     # Convertir sets en counts
     if dataset_type == 'network':
@@ -244,7 +205,7 @@ def write_analysis_to_file():
         
         # Analyse Network Dataset
         write_section(f, "PARTIE 1: NETWORK DATASET")
-        print(f"\n📊 Analyse des fichiers NETWORK ({len(files_network)} fichiers)")
+        print(f"\nAnalyse des fichiers NETWORK ({len(files_network)} fichiers)")
         
         for idx, file in enumerate(files_network, 1):
             print(f"\n[{idx}/{len(files_network)}] {file}")
@@ -299,7 +260,7 @@ def write_analysis_to_file():
         
         # Analyse Physical Dataset
         write_section(f, "PARTIE 2: PHYSICAL DATASET")
-        print(f"\n📊 Analyse des fichiers PHYSICAL ({len(files_physical)} fichiers)")
+        print(f"\nAnalyse des fichiers PHYSICAL ({len(files_physical)} fichiers)")
         
         for idx, file in enumerate(files_physical, 1):
             print(f"\n[{idx}/{len(files_physical)}] {file}")
@@ -341,17 +302,34 @@ def write_analysis_to_file():
         f.write(f"  Network: {len(files_network)} fichiers, {total_rows_network:,} lignes\n")
         f.write(f"  Physical: {len(files_physical)} fichiers, {total_rows_physical:,} lignes\n")
         f.write(f"\nLabels uniques trouvés: {', '.join(sorted(all_labels))}\n")
-        f.write(f"\nTypes d'analyses effectuées:\n")
-        f.write("  1. Distribution des labels et statistiques de base\n")
-        f.write("  2. Analyse temporelle (période, distribution horaire)\n")
-        f.write("  3. Topologie réseau (IPs, protocoles, top talkers)\n")
-        f.write("  4. Corrélation labels-protocoles (top 3 labels)\n")
-        f.write("  5. État des capteurs (Physical)\n")
     
     print("\n" + "="*80)
-    print(f"✅ ANALYSE TERMINÉE".center(80))
+    print(f"ANALYSE TERMINÉE".center(80))
     print(f"Résultats sauvegardés dans: {output_file}".center(80))
     print("="*80 + "\n")
+
+        # --- Conversion pour export JSON ---
+    results['label_distribution'] = dict(results['label_distribution'])
+    results['hourly_distribution'] = dict(results['hourly_distribution'])
+    results['protocol_distribution'] = dict(results['protocol_distribution'])
+    results['top_talkers'] = dict(results['top_talkers'])
+
+    results['protocols_by_label'] = {
+        k: dict(v) for k, v in results['protocols_by_label'].items()
+    }
+
+    if results['time_range'] is not None:
+        results['time_range'] = [
+            results['time_range'][0].isoformat(),
+            results['time_range'][1].isoformat()
+        ]
+
+        # Export JSON
+    json_output_file = "analysis_results.json"
+    with open(json_output_file, "w", encoding="utf-8") as jf:
+        json.dump(all_results, jf, default=str)
+
+
 
 # Exécuter l'analyse
 if __name__ == "__main__":

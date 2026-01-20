@@ -2,7 +2,7 @@
 ================================================================================
                ANALYSE COMPLÈTE DES DATASETS - NETWORK & PHYSICAL               
 ================================================================================
-Date de génération: 2026-01-19 23:43:44
+Date de génération: 2026-01-20 21:03:20
 
 ================================================================================
                            PARTIE 1: NETWORK DATASET                            
@@ -441,10 +441,3 @@ Fichiers analysés:
   Physical: 5 fichiers, 10,923 lignes
 
 Labels uniques trouvés: DoS, MITM, anomaly, nomal, normal, physical fault, scan
-
-Types d'analyses effectuées:
-  1. Distribution des labels et statistiques de base
-  2. Analyse temporelle (période, distribution horaire)
-  3. Topologie réseau (IPs, protocoles, top talkers)
-  4. Corrélation labels-protocoles (top 3 labels)
-  5. État des capteurs (Physical)
