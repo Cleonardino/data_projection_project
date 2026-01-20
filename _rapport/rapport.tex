@@ -246,7 +246,8 @@ Au nombre de 14, les colonnes des données réseau sont listées dans la \hyperr
 	
 \subsubsection{Analyse des données}
 
-\subsection{Prétraitement}
+\subsection{Pré-traitement}
+\label{label:preprocessing}
 
 L'ensemble des données est soumis a un pré-traitement général avant d'être utilisé par les différents modèles :
 
@@ -254,17 +255,10 @@ L'ensemble des données est soumis a un pré-traitement général avant d'être 
 	\item Les données brutes (physique et réseau) sont chargées depuis les différents fichiers CSV.
 	\item Les jeux de données étant particulièrement lourds, ils sont sous-échantillonnés pour permettre de travailler sur des sous-ensembles réduits.
 	\item Les caractéristiques et les labels sont extraits.
-	\item Les labels sont encodés avec \texttt{LabelEncoder} \cite{scikit-learn_labelencoder} de \texttt{scikit-learn} \cite{scikit-learn_article}, ce qui permet de convertir les étiquettes textuelles en valeurs numériques.
-	\item Les données sont stratifiées en ensembles d'entraînement, de validation et de test avec \texttt{train\_test\_split} \cite{scikit-learn_train_test_split} de \texttt{scikit-learn}, en utilisant les options de \texttt{stratify} et \texttt{shuffle} pour garantir une répartition équilibrée des classes dans chaque ensemble.
+	\item Les labels sont encodés avec \texttt{LabelEncoder} de \texttt{scikit-learn} \cite{scikit-learn}, ce qui permet de convertir les étiquettes textuelles en valeurs numériques.
+	\item Les données sont stratifiées en ensembles d'entraînement, de validation et de test avec \texttt{train\_test\_split} de \texttt{scikit-learn}, en utilisant les options de \texttt{stratify} et \texttt{shuffle} pour garantir une répartition équilibrée des classes dans chaque ensemble.
 		  Le ratio utilisé est de 70\% pour l'ensemble d'entraînement, 15\% pour l'ensemble de validation et 15\% pour l'ensemble de test.
-	\item Si le \textit{balancing} est activé, il est appliqué sur l'ensemble d'entraînement à l'aide de la fonction \texttt{RandomOverSampler} \cite{imbalanced-learn_randomoversampler} de la bibliothèque \texttt{imbalanced-learn} \cite{imbalanced-learn}.
-	% \item Si le balancing est activé, il est appliqué sur l'ensemble d'entraînement à l'aide de différentes techniques (notamment via des fonctions de la bibliothèque \texttt{imbalanced-learn} \cite{imbalanced-learn}) :
-	% \begin{itemize}
-		% \item \textbf{OverSampling} avec \texttt{SMOTE} \cite{imbalanced-learn_smote}
-		% \item \textbf{OverSampling} avec \texttt{RandomOverSampler} \cite{imbalanced-learn_randomoversampler}
-		% \item \textbf{OverSampling} manuellement avec l'augmentation des données
-		% \item \textbf{UnderSampling} avec \texttt{RandomUnderSampler} \cite{imbalanced-learn_randomundersampler}
-	% \end{itemize}
+	\item Si le \textit{balancing} est activé, il est appliqué sur l'ensemble d'entraînement à l'aide de la fonction \texttt{RandomOverSampler} de la bibliothèque \texttt{imbalanced-learn} \cite{imbalanced-learn}.
 	\item Enfin, les données sont normalisées avec \texttt{StandardScaler} de \texttt{scikit-learn} pour garantir que chaque caractéristique ait une moyenne nulle et une variance unitaire.
 \end{enumerate}
 
@@ -278,7 +272,6 @@ Parmi les modèles demandés, les suivants ont été implémentés :
     \item Random Forest
     \item XGBoost
     \item MLP
-    \item Modèles de transformers
 \end{itemize}
 
 Le modèle CART n'a pas été implémenté, mais a été remplacé par des modèles basés sur des architectures de transformers adaptées aux données tabulaires :
@@ -293,24 +286,32 @@ Le modèle CART n'a pas été implémenté, mais a été remplacé par des modè
 
 % À réviser, actuellement généré par IA
 
-L'ensemble du code est organisé pour permettre une expérimentation facile et reproductible des différents modèles sur les deux types de données (physiques et réseau).
-Chaque modèle est défini dans un script séparé contenu dans un dossier \texttt{models/}, avec des configurations spécifiques pour chaque type de modèle.
-Les données sont pré-traitées de manière cohérente pour tous les modèles, et un système de cache est mis en place pour éviter de répéter le pré-traitement lors de nouvelles exécutions.
-Les résultats de chaque entraînement sont enregistrés de manière structurée, permettant une analyse et une comparaison faciles des performances des modèles.
+L'ensemble du code est organisé pour permettre une expérimentation facile et reproductible des différents modèles sur les deux types de données.
+
+Les données sont pré-traitées de manière cohérente pour tous les modèles (voir \hyperref[label:preprocessing]{1.2 Pré-traitement}), et un système de cache est mis en place pour éviter de répéter le pré-traitement lors de nouvelles exécutions.
+Il est enregistré dans le dossier \texttt{cached\_datasets}.
+
+Chaque modèle est défini dans un script séparé contenu dans un dossier \texttt{models/}, avec des configurations spécifiques (\texttt{configs/model\_type/config\_name.yaml}) pour chaque type de modèle : hyperparamètres, jeux de données, taille des modèles, etc.
+Les scripts d'entraînement et de test sont situés dans les fichiers \texttt{scripts/train.py} et \texttt{scripts/test.} \texttt{py}.
+Les différents modèles sont entraînés individuellement avec leur script d'entraînement et leur fichier de configuration, ou bien plusieurs modèles peuvent être entraînés simultanément avec le script \texttt{scripts/train\_all.py}.
+
+Les résultats de chaque entraînement sont enregistrés de manière structurée dans le dossier \texttt{experiments} en fonction de leur configuration, permettant une analyse et une comparaison faciles des performances des modèles.
+Le détail des résultats enregistrés est présenté dans la section suivante.
 
 \subsection{Hyperparamères et résultats}
 
+En termes d'hyperparamètres, il n'y en a qu'un seul qui a été vraiment manipulé : la taille des modèles utilisés.
+En effet, pour chaque type de modèle implémenté, deux tailles de modèles ont été testées : \texttt{small} et \texttt{medium}.
+La différence principale entre elles réside dans le nombre de couches et de neurones utilisés.
+Par exemple, pour le MLP, le modèle \texttt{small} utilise 2 couches cachées avec 32 et 64 neurones, tandis que le modèle \texttt{medium} utilise 3 couches cachées de 64, 128 et 256 neurones.
+
+% Brouillon
+Pour les hyperparamètres, pour l'instant, ont juste été testés 2 tailles de modèles (small et medium) pour chaque dataset, et utilisés des bons learning rate et autres hyperparamètres par défaut, et de bons résultats ont été obtenus.
+
+
 % ============= BROUILLON =============
 \begin{itemize}
-    \item Organisation des modèles bien structurée
-    \item Scripts définissant la structure de chaque modèle dans le dossier \texttt{models/}.
-	\item Différentes configurations pour chaque modèle (hyperparamètres, datasets, taille des modèles, etc.) dans \texttt{configs/model\_type/config\_name.yaml}.
-	\item Scripts d'entraînement et de test dans \texttt{scripts/train.py} et \texttt{scripts/test.py}.
-	\item Les données sont pré-traitées en amont \textbf{de la même façon pour tous les types de modèles}.
-	\item Un système de cache est utilisé pour éviter de traiter à nouveau les données lors de nouvelles exécutions et sont enregistrées dans le dossier \texttt{cached\_datasets}.
-	\item Ensuite, les modèles sont entrainés individuellement avec le script \texttt{scripts/train.py} sur un fichier de config, ou alors il est aussi possible d'entraîner tous les modèles ou un groupe de modèles d'un coup avec le script \texttt{scripts/train\_all.py}.
-	\item Les résultats de chaque entraînement de chaque config de modèle sont enregistrés dans le dossier \texttt{experiments}.
-	\item Sont enregistrés pour chaque entraînement:
+    \item Sont enregistrés pour chaque entraînement:
 	\begin{itemize}
 		\item les poids du meilleurs modèle
 		\item la configuration utilisée (au cas ou les configurations changent)
@@ -320,8 +321,6 @@ Les résultats de chaque entraînement sont enregistrés de manière structurée
 	\end{itemize}
 	\item Un rapport récapitulatif de tous les entraînements est ensuite généré avec le script \texttt{src/analyze\_results.py} séparé pour le physical et le network datasets.
 \end{itemize}
-%
-Pour les hyperparamètres, pour l'instant, ont juste été testés 2 tailles de modèles (small et medium) pour chaque dataset, et utilisés des bons learning rate et autres hyperparamètres par défaut, et de bons résultats ont été obtenus.
 % ================= FIN BROUILLON =============
 
 \section{Évaluation et comparaison avec les données de référence}
@@ -372,14 +371,21 @@ En effet dans la \hyperref[tab:results_physical]{Table 5}, on peut voir que les 
 	\label{tab:results_physical}
 \end{table}
 
-En s'attardant sur les erreurs commises par les différents modèles, on peut observer certaines corrélation entre celles-ci, comme le montre la \hyperref[fig:corrmat]{Figure 1}.
+En s'attardant sur les erreurs commises par les différents modèles, on peut observer certaines corrélation entre celles-ci, comme le montre la \hyperref[fig:corrmat_physical]{Figure 1}.
 Par exemple — et sasns surprise — le modèle MLP et le modèle MLP avec attention présentent une forte corrélation dans leurs erreurs.
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1\textwidth]{images/correlation_heatmap.png}
-	\caption{Matrice de corrélation des erreurs entre les modèles}
-	\label{fig:corrmat}
+	\includegraphics[width=1\textwidth]{images/correlation_heatmap_physical.png}
+	\caption{Matrice de corrélation des erreurs entre les modèles pour les données physiques}
+	\label{fig:corrmat_physical}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{images/correlation_heatmap_network.png}
+	\caption{Matrice de corrélation des erreurs entre les modèles pour les données réseau}
+	\label{fig:corrmat_network}
 \end{figure}
 
 Comme il y a très peu de faible corrélations, il est raisonnable de penser que certains échantillons sont systématiquement mal classés par tous les modèles.
