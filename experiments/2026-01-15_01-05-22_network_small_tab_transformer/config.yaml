@@ -1,0 +1,31 @@
+data:
+  balancing: oversampling_copy
+  dataset_type: network
+  normalize: true
+  nrows_per_file: 300000
+  seed: 42
+  test_ratio: 0.15
+  train_ratio: 0.7
+  val_ratio: 0.15
+experiment:
+  name: network_small
+  save_history: true
+  save_model: true
+  save_predictions: true
+model:
+  hyperparameters:
+    d_model: 32
+    dropout: 0.1
+    n_heads: 2
+    n_layers: 1
+  name: tab_transformer
+training:
+  batch_size: 64
+  early_stopping: true
+  epochs: 20
+  learning_rate: 0.002
+  optimizer: adamw
+  patience: 5
+  scheduler: cosine
+  use_gpu: true
+  weight_decay: 0.0001

@@ -1,0 +1,32 @@
+data:
+  balancing: oversampling_copy
+  dataset_type: physical
+  normalize: true
+  seed: 42
+  test_ratio: 0.15
+  train_ratio: 0.7
+  val_ratio: 0.15
+experiment:
+  name: physical_small
+  save_history: true
+  save_model: true
+  save_predictions: true
+model:
+  hyperparameters:
+    dropout: 0.2
+    hidden_dim: 32
+    mlp_layers:
+    - 64
+    - 32
+    n_heads: 2
+  name: attention_mlp
+training:
+  batch_size: 64
+  early_stopping: true
+  epochs: 20
+  learning_rate: 0.002
+  optimizer: adamw
+  patience: 5
+  scheduler: cosine
+  use_gpu: true
+  weight_decay: 0.0001
