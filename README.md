@@ -91,3 +91,7 @@ Outputs are saved to `results_analysis/` (report.md, leaderboard.csv, plots).
   - **Deep Learning**: `MLP`, `AttentionMLP`, `FT-Transformer`, `TabTransformer`
   - **Machine Learning**: `XGBoost`, `RandomForest`, `KNN`
 - **Output Statistics**: `load_ml_ready_data` automatically prints class distribution statistics for Train, Validation, and Test splits.
+
+## 4. Streamlit app
+
+To launch the streamlit app, you have to run the `./launch.sh` if you have a `.venv` in the root of the repository, else, you just have to run the command `streamlit run app.py`.
