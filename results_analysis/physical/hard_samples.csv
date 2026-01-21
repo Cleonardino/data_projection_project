@@ -1,51 +1,51 @@
 sample_idx,true_label,times_wrong,wrong_by_models,common_wrong_pred
-768,normal,29,29,physical fault
-36,scan,29,29,normal
-1549,scan,29,29,normal
-848,normal,29,29,physical fault
-927,normal,27,27,MITM
-1257,normal,27,27,physical fault
-34,normal,26,26,MITM
-1104,normal,26,26,MITM
-5,normal,26,26,MITM
-35,normal,26,26,MITM
-1628,normal,26,26,MITM
-160,normal,25,25,MITM
+1549,scan,33,33,normal
+36,scan,33,33,normal
+848,normal,33,33,physical fault
+768,normal,32,32,physical fault
+1257,normal,31,31,physical fault
+34,normal,30,30,MITM
+927,normal,30,30,MITM
+1628,normal,28,28,MITM
+1104,normal,28,28,MITM
+35,normal,28,28,MITM
+5,normal,28,28,MITM
+160,normal,27,27,MITM
+864,normal,25,25,scan
+99,normal,25,25,MITM
+210,normal,25,25,MITM
+1451,normal,25,25,nomal
+432,normal,24,24,MITM
+1559,normal,24,24,physical fault
 466,normal,24,24,DoS
-99,normal,24,24,MITM
-210,normal,24,24,MITM
-432,normal,23,23,MITM
-265,normal,23,23,MITM
-864,normal,23,23,scan
-1451,normal,23,23,nomal
+113,normal,24,24,MITM
+265,normal,24,24,MITM
+598,normal,23,23,scan
+478,normal,23,23,physical fault
+1203,normal,23,23,scan
+790,normal,23,23,scan
 892,normal,23,23,DoS
-598,normal,22,22,scan
-1203,normal,22,22,scan
-1559,normal,22,22,physical fault
-113,normal,22,22,MITM
-478,normal,21,21,physical fault
+1567,normal,22,22,MITM
+1304,normal,22,22,MITM
+891,normal,22,22,MITM
+168,normal,21,21,MITM
+347,normal,21,21,physical fault
 76,normal,21,21,MITM
-891,normal,21,21,MITM
-790,normal,21,21,scan
-1567,normal,20,20,MITM
-1304,normal,20,20,MITM
-347,normal,20,20,physical fault
-168,normal,20,20,MITM
-270,normal,20,20,MITM
+482,normal,20,20,MITM
 1047,normal,20,20,physical fault
+1126,normal,20,20,MITM
+715,normal,20,20,MITM
+270,normal,20,20,MITM
 578,normal,20,20,MITM
 1158,normal,19,19,MITM
 883,normal,19,19,MITM
+507,normal,19,19,MITM
+945,normal,19,19,MITM
 940,normal,19,19,physical fault
-715,normal,19,19,MITM
-1126,normal,19,19,MITM
-482,normal,19,19,MITM
-945,normal,18,18,MITM
-622,normal,18,18,DoS
-1437,normal,18,18,MITM
-507,normal,18,18,MITM
 299,normal,18,18,MITM
-1167,normal,17,17,MITM
-881,normal,17,17,scan
-633,normal,17,17,MITM
-1095,normal,17,17,scan
+784,normal,18,18,MITM
+622,normal,18,18,DoS
+633,normal,18,18,MITM
+1498,normal,18,18,scan
+881,normal,18,18,scan
+1167,normal,18,18,MITM
