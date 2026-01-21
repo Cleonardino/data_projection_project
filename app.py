@@ -6,7 +6,6 @@ from app.model_data_class import ModelData
 model_data: list[ModelData] = []
 
 experiments = load_experiments()
-print(len(experiments))
 
 for key in experiments:
     # Create page for the experiment
