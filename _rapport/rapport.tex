@@ -459,34 +459,13 @@ On y trouve :
 
 % ------- III.1 Indicateurs et résultats principaux -------
 
-\subsection{Indicateurs et résultats principaux}
+\subsection{Indicateurs et résultats principaux pour le jeu de donnée Physical}
 
 % --------------- III.1 Physical ---------------
 
 D'après les résultats présentés dans la \hyperref[tab:physical_small_results]{Table 5}, le modèle \texttt{small\_knn} obtient les meilleures performances sur le jeu de données \texttt{physical\_small}, avec une précision de \textbf{97,74\%}, un F1-macro de \textbf{0,8007}, une précision équilibrée de \textbf{0,8235} et un MCC de \textbf{0,9402}.
 Le temps d'entraînement est également très faible (quasi-instantané), ce qui en fait un choix efficace pour ce type de données.
 À l'inverse, le modèle \texttt{small\_random\_forest} affiche les performances les plus faibles, ce qui peut s'expliquer par une répartition des classses TO COMPLETE.
-
-\begin{table}[H]
-    \centering
-	\resizebox{\textwidth}{!}{%
-    \begin{tabular}{c l c c c c c}
-    	\hline
-    	\textbf{Rang} & \textbf{Modèle} & \textbf{Précision} & \textbf{F1 (macro)} & \textbf{Précision équilibrée} & \textbf{MCC} & \textbf{Temps (s)} \\
-    	\hline
-    	1 & \texttt{small\_knn} & 0.9774 & 0.8007 & 0.8235 & 0.9402 & 0.0 \\
-    	2 & \texttt{small\_tab\_transformer} & 0.9683 & 0.8001 & 0.8250 & 0.9188 & 40.7 \\
-    	3 & \texttt{small\_attention\_mlp} & 0.9048 & 0.7259 & 0.8106 & 0.7946 & 35.2 \\
-    	4 & \texttt{small\_mlp} & 0.8786 & 0.6889 & 0.7988 & 0.7515 & 22.7 \\
-    	5 & \texttt{small\_ft\_transformer} & 0.8401 & 0.6593 & 0.7970 & 0.7004 & 56.1 \\
-    	6 & \texttt{small\_xgboost} & 0.8676 & 0.6412 & 0.7906 & 0.7287 & 0.6 \\
-    	7 & \texttt{small\_random\_forest} & 0.6101 & 0.4687 & 0.7242 & 0.4779 & 0.2 \\
-    	\hline
-    \end{tabular}
-	}
-	\caption{Comparaison des expériences sur le jeu de données physiques physical\_small}
-    \label{tab:physical_small_results}
-\end{table}
 
 
 \begin{table}[H]
@@ -551,6 +530,7 @@ En effet dans la \hyperref[tab:results_physical]{Table 6}, on peut voir que les 
 
 % --------------- III.2 Network ---------------
 
+\subsection{Indicateurs et résultats principaux pour le jeu de donnée Network}
 
 \begin{table}[H]
     \centering
@@ -589,13 +569,12 @@ En effet dans la \hyperref[tab:results_physical]{Table 6}, on peut voir que les 
 \end{table}
 
 
-
 % --------------- III.3 Analyse des erreurs ---------------
 
 \subsection{Analyse des erreurs}
 
 En s'attardant sur les erreurs commises par les différents modèles, on peut observer certaines corrélation entre celles-ci, comme le montre les \hyperref[fig:corrmat_network]{Figure 6} et \hyperref[fig:corrmat_physical]{Figure 7}.
-Par exemple — et sasns surprise — le modèle MLP et le modèle MLP avec attention présentent une forte corrélation dans leurs erreurs.
+Par exemple — et sans surprise — le modèle MLP et le modèle MLP avec attention présentent une forte corrélation dans leurs erreurs.
 
 \begin{figure}[H]
 	\centering
