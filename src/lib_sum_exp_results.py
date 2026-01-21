@@ -7,13 +7,9 @@ import json
 
 #
 NFS: list[str] = [
-    "best_model",
     "config.yaml",
     "training_history.json",
     "metrics.json",
-    "train_errors.csv",
-    "test_errors.csv",
-    "val_errors.csv"
 ]
 
 
@@ -72,4 +68,6 @@ def load_experiments(exp_dir: str = "experiments/") -> dict[str, dict[str, dict[
 
 # To test
 if __name__ == "__main__":
-    print(load_experiments())
+    a = load_experiments()
+    print(a.keys())
+    print(len(a))
