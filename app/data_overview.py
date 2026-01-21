@@ -165,169 +165,72 @@ if data['top_ips']:
 
 st.divider()
 
-
-st.header("Temporal Analysis")
-
-
-st.subheader("Network Time Ranges")
-if data['time_ranges']['network']:
-    for i, time_range in enumerate(data['time_ranges']['network'], 1):
-        st.text(f"{i}. {time_range}")
-else:
-    st.info("No time range data available")
-
-st.subheader("Physical Time Ranges")
-if data['time_ranges']['physical']:
-    for i, time_range in enumerate(data['time_ranges']['physical'], 1):
-        st.text(f"{i}. {time_range}")
-else:
-    st.info("No time range data available")
-
-st.subheader("Hourly Event Distribution")
-
-
-hourly_network = data['hourly_dist']['network']
-if hourly_network:
-    df_hourly_network = pd.DataFrame(
-        [(hour, count) for hour, count in sorted(hourly_network.items())],
-        columns=['Hour', 'Count']
-    )
-    
-    fig = px.line(
-        df_hourly_network,
-        x='Hour',
-        y='Count',
-        title='Network Traffic by Hour',
-        markers=True
-    )
-    st.plotly_chart(fig, use_container_width=True)
-else:
-    st.info("No hourly data available")
-
-
-hourly_physical = data['hourly_dist']['physical']
-if hourly_physical:
-    df_hourly_physical = pd.DataFrame(
-        [(hour, count) for hour, count in sorted(hourly_physical.items())],
-        columns=['Hour', 'Count']
-    )
-    
-    fig = px.line(
-        df_hourly_physical,
-        x='Hour',
-        y='Count',
-        title='Physical Sensor Events by Hour',
-        markers=True
-    )
-    st.plotly_chart(fig, use_container_width=True)
-else:
-    st.info("No hourly data available")
-
-st.divider()
-
 st.header("Sensor Statistics")
 
 sensor_stats = data['sensor_stats']
 if sensor_stats:
     for file_name, sensor_data in sensor_stats.items():
-        with st.expander(f"📄 {file_name}"):
+        with st.expander(f"{file_name}"):
             df_sensors = pd.DataFrame(
                 sensor_data.items(),
                 columns=['Label', 'Active Sensors']
             ).sort_values('Active Sensors', ascending=False)
             
-            col1, col2 = st.columns([1, 2])
-            with col1:
-                st.dataframe(df_sensors, use_container_width=True)
-            with col2:
-                fig = px.bar(
-                    df_sensors,
-                    x='Label',
-                    y='Active Sensors',
-                    title=f'Active Sensors by Label',
-                    color='Active Sensors'
-                )
-                fig.update_layout(xaxis_tickangle=-45)
-                st.plotly_chart(fig, use_container_width=True)
+
+            st.dataframe(df_sensors, use_container_width=True)
+
+            fig = px.bar(
+                df_sensors,
+                x='Label',
+                y='Active Sensors',
+                title=f'Active Sensors by Label'
+            )
+            st.plotly_chart(fig, use_container_width=True)
 else:
     st.info("No sensor statistics available")
 
 st.divider()
 
-# ============================================================================
-# MISSING VALUES
-# ============================================================================
-st.header("❓ Missing Values Analysis")
+st.header("Missing Values")
 
-tab1, tab2 = st.tabs(["Network", "Physical"])
 
-with tab1:
-    missing_network = data['missing_values']['network']
-    if missing_network:
-        df_missing_network = pd.DataFrame(
-            missing_network.items(),
-            columns=['Column', 'Missing Count']
-        ).sort_values('Missing Count', ascending=False)
-        
-        fig = px.bar(
-            df_missing_network,
-            x='Column',
-            y='Missing Count',
-            title='Missing Values in Network Data',
-            color='Missing Count',
-            color_continuous_scale='Reds'
-        )
-        fig.update_layout(xaxis_tickangle=-45)
-        st.plotly_chart(fig, use_container_width=True)
-        
-        st.dataframe(df_missing_network, use_container_width=True)
-    else:
-        st.success("✅ No missing values in network datasets!")
+missing_network = data['missing_values']['network']
+if missing_network:
+    df_missing_network = pd.DataFrame(
+        missing_network.items(),
+        columns=['Column', 'Missing Count']
+    ).sort_values('Missing Count', ascending=False)
+    
+    fig = px.bar(
+        df_missing_network,
+        x='Column',
+        y='Missing Count',
+        title='Missing Values in Network Data'
+    )
+    st.plotly_chart(fig, use_container_width=True)
+    
+    st.dataframe(df_missing_network, use_container_width=True)
+else:
+    st.success("No missing values in network datasets")
 
-with tab2:
-    missing_physical = data['missing_values']['physical']
-    if missing_physical:
-        df_missing_physical = pd.DataFrame(
-            missing_physical.items(),
-            columns=['Column', 'Missing Count']
-        ).sort_values('Missing Count', ascending=False)
-        
-        fig = px.bar(
-            df_missing_physical,
-            x='Column',
-            y='Missing Count',
-            title='Missing Values in Physical Data',
-            color='Missing Count',
-            color_continuous_scale='Reds'
-        )
-        fig.update_layout(xaxis_tickangle=-45)
-        st.plotly_chart(fig, use_container_width=True)
-        
-        st.dataframe(df_missing_physical, use_container_width=True)
-    else:
-        st.success("✅ No missing values in physical datasets!")
+
+missing_physical = data['missing_values']['physical']
+if missing_physical:
+    df_missing_physical = pd.DataFrame(
+        missing_physical.items(),
+        columns=['Column', 'Missing Count']
+    ).sort_values('Missing Count', ascending=False)
+    
+    fig = px.bar(
+        df_missing_physical,
+        x='Column',
+        y='Missing Count',
+        title='Missing Values in Physical Data'
+    )
+    st.plotly_chart(fig, use_container_width=True)
+    
+    st.dataframe(df_missing_physical, use_container_width=True)
+else:
+    st.success("No missing values in physical datasets")
 
 st.divider()
-
-# ============================================================================
-# DATASET SUMMARY TABLE
-# ============================================================================
-st.header("📋 Dataset Summary Table")
-
-df_summary = pd.DataFrame(data['summary_table'])
-
-# Add styling
-st.dataframe(
-    df_summary.style.background_gradient(subset=['Rows'], cmap='YlOrRd'),
-    use_container_width=True,
-    height=400
-)
-
-# Download button
-csv = df_summary.to_csv(index=False)
-st.download_button(
-    label="📥 Download Summary as CSV",
-    data=csv,
-    file_name="dataset_summary.csv",
-    mime="text/csv"
-)
