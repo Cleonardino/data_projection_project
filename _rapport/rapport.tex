@@ -382,8 +382,8 @@ Le détail des résultats enregistrés est présenté dans la section suivante.
 
 En termes d'hyperparamètres, il n'y en a qu'un seul qui a été vraiment manipulé : la taille des modèles utilisés.
 En effet, pour chaque type de modèle implémenté, deux ou trois tailles de modèles ont été testées : \texttt{small}, \texttt{medium} et parfois \texttt{large}.
-La différence principale entre elles réside dans le nombre de couches et de neurones utilisés.
-Par exemple, pour le MLP, le modèle \texttt{small} utilise 2 couches cachées avec 32 et 64 neurones, tandis que le modèle \texttt{medium} utilise 3 couches cachées de 64, 128 et 256 neurones.
+La différence principale entre elles réside dans le nombre de couches et de neurones utilisés et le nombre de données utilisées pour l'apprentissage (il faut \textit{scaler} avec la taille du modèle). Cependant, en vue de la taille du dataset physical, l'on ne scale que sur le network, et on utilise tout le temps toutes les données du physical.
+Par exemple, pour le MLP, le modèle \texttt{small} utilise 2 couches cachées avec 32 et 64 neurones et entraîné sur 300.000 données network, tandis que le modèle \texttt{medium} utilise 3 couches cachées de 64, 128 et 256 neurones et entraîné sur 500.000 données network.
 
 Concernant les résultats, sont enregistrés :
 
@@ -528,7 +528,11 @@ De même, l'étiquiette \texttt{scan} est plusieurs fois prédite de manière er
 
 \subsection*{Contribution}
 
+Dans ce pojet, j'ai principalement travaillé à développer l'architecture modulaire dont je suis très fier pour l'entraînement et le test des modèles, et le script qui va automatiquement analyser les résultats et les afficher dans un rapport markdown et les mettre à disposition de l'app streamlit. J'ai entraîné les modèles sur mon ordinateur fixe (Ryzen 5 3600, 24 Go de RAM, GTX Titan X) et j'ai surveillé les entraînements et modifié certaines configurations pour faire que certains modèles apprennent mieux et réduire l'overfitting.
+
 \subsection*{Avis}
+
+J'ai pas appris grand chose avec ce projet, je savais déjà analyser / traiter des données, et je savais déjà mettre en place une pipeline d'entraînement de modèles. Si on avait eu le temps (pas eu à faire 7 projets en même temps dont 2 très gros et très importants), j'aurais peut-être pu aller plus loin dans le concept de prédiction d'attaque et de détection d'anomalie, et de mettre en place des méthodes que l'on n'utilise que dans ces domaines, mais je n'ai donc pas eu le temps de regarder cela.
 
 \newpage
 
