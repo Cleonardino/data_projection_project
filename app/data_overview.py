@@ -115,49 +115,38 @@ fig = px.bar(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-
-st.subheader("Top 10 Protocols")
-for protocol, count in data['top_protocols']:
-    st.write(f"protocol  : {count:,}")
-
 # Protocols by attack type
-st.subheader("Protocols by Attack Type")
+st.subheader("Protocols by Attack")
 protocols_by_attack = data['protocols_by_attack']
 
-if protocols_by_attack:
-    selected_attack = st.selectbox(
-        "Select attack type",
-        options=list(protocols_by_attack.keys())
-    )
+
+selected_attack = st.selectbox(
+    "Select attack type",
+    options=list(protocols_by_attack.keys())
+)
+
+if selected_attack and protocols_by_attack[selected_attack]:
+    df_attack_protocols = pd.DataFrame(
+        protocols_by_attack[selected_attack].items(),
+        columns=['Protocol', 'Count']
+    ).sort_values('Count', ascending=False)
     
-    if selected_attack and protocols_by_attack[selected_attack]:
-        df_attack_protocols = pd.DataFrame(
-            protocols_by_attack[selected_attack].items(),
-            columns=['Protocol', 'Count']
-        ).sort_values('Count', ascending=False)
-        
-        fig = px.pie(
-            df_attack_protocols,
-            names='Protocol',
-            values='Count',
-            title=f'Protocol Distribution for {selected_attack}'
-        )
-        st.plotly_chart(fig, use_container_width=True)
+    fig = px.pie(
+        df_attack_protocols,
+        names='Protocol',
+        values='Count',
+        title=f'Protocol Distribution for {selected_attack}'
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
 st.divider()
 
-# ============================================================================
-# IP STATISTICS (Network only)
-# ============================================================================
-st.header("🌐 IP Address Statistics")
+st.header("IP Address Statistics (only network data)")
 
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.metric("Unique Source IPs", f"{data['ip_stats']['unique_sources']:,}")
-with col2:
-    st.metric("Unique Destination IPs", f"{data['ip_stats']['unique_destinations']:,}")
-with col3:
-    st.metric("Missing IPs", f"{data['ip_stats']['missing_ips']:,}")
+
+st.write(f"Unique Source IPs : {data['ip_stats']['unique_sources']:,}")
+st.write(f"Unique Destination IPs : {data['ip_stats']['unique_destinations']:,}")
+st.write(f"Missing IPs : {data['ip_stats']['missing_ips']:,}")
 
 st.subheader("Top 10 Most Active IPs")
 if data['top_ips']:
@@ -170,89 +159,73 @@ if data['top_ips']:
         df_top_ips,
         x='IP Address',
         y='Count',
-        title='Most Active IP Addresses',
-        color='Count',
-        color_continuous_scale='Oranges'
+        title='10 Most Active IP Addresses'
     )
-    fig.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig, use_container_width=True)
 
 st.divider()
 
-# ============================================================================
-# TEMPORAL ANALYSIS
-# ============================================================================
-st.header("⏰ Temporal Analysis")
 
-col1, col2 = st.columns(2)
+st.header("Temporal Analysis")
 
-with col1:
-    st.subheader("Network Time Ranges")
-    if data['time_ranges']['network']:
-        for i, time_range in enumerate(data['time_ranges']['network'], 1):
-            st.text(f"{i}. {time_range}")
-    else:
-        st.info("No time range data available")
 
-with col2:
-    st.subheader("Physical Time Ranges")
-    if data['time_ranges']['physical']:
-        for i, time_range in enumerate(data['time_ranges']['physical'], 1):
-            st.text(f"{i}. {time_range}")
-    else:
-        st.info("No time range data available")
+st.subheader("Network Time Ranges")
+if data['time_ranges']['network']:
+    for i, time_range in enumerate(data['time_ranges']['network'], 1):
+        st.text(f"{i}. {time_range}")
+else:
+    st.info("No time range data available")
 
-# Hourly distribution
+st.subheader("Physical Time Ranges")
+if data['time_ranges']['physical']:
+    for i, time_range in enumerate(data['time_ranges']['physical'], 1):
+        st.text(f"{i}. {time_range}")
+else:
+    st.info("No time range data available")
+
 st.subheader("Hourly Event Distribution")
 
-tab1, tab2 = st.tabs(["Network", "Physical"])
 
-with tab1:
-    hourly_network = data['hourly_dist']['network']
-    if hourly_network:
-        df_hourly_network = pd.DataFrame(
-            [(hour, count) for hour, count in sorted(hourly_network.items())],
-            columns=['Hour', 'Count']
-        )
-        
-        fig = px.line(
-            df_hourly_network,
-            x='Hour',
-            y='Count',
-            title='Network Traffic by Hour',
-            markers=True
-        )
-        fig.update_layout(height=300)
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.info("No hourly data available")
+hourly_network = data['hourly_dist']['network']
+if hourly_network:
+    df_hourly_network = pd.DataFrame(
+        [(hour, count) for hour, count in sorted(hourly_network.items())],
+        columns=['Hour', 'Count']
+    )
+    
+    fig = px.line(
+        df_hourly_network,
+        x='Hour',
+        y='Count',
+        title='Network Traffic by Hour',
+        markers=True
+    )
+    st.plotly_chart(fig, use_container_width=True)
+else:
+    st.info("No hourly data available")
 
-with tab2:
-    hourly_physical = data['hourly_dist']['physical']
-    if hourly_physical:
-        df_hourly_physical = pd.DataFrame(
-            [(hour, count) for hour, count in sorted(hourly_physical.items())],
-            columns=['Hour', 'Count']
-        )
-        
-        fig = px.line(
-            df_hourly_physical,
-            x='Hour',
-            y='Count',
-            title='Physical Sensor Events by Hour',
-            markers=True
-        )
-        fig.update_layout(height=300)
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.info("No hourly data available")
+
+hourly_physical = data['hourly_dist']['physical']
+if hourly_physical:
+    df_hourly_physical = pd.DataFrame(
+        [(hour, count) for hour, count in sorted(hourly_physical.items())],
+        columns=['Hour', 'Count']
+    )
+    
+    fig = px.line(
+        df_hourly_physical,
+        x='Hour',
+        y='Count',
+        title='Physical Sensor Events by Hour',
+        markers=True
+    )
+    st.plotly_chart(fig, use_container_width=True)
+else:
+    st.info("No hourly data available")
 
 st.divider()
 
-# ============================================================================
-# SENSOR STATISTICS (Physical only)
-# ============================================================================
-st.header("📡 Sensor Statistics")
+st.header("Sensor Statistics")
 
 sensor_stats = data['sensor_stats']
 if sensor_stats:
