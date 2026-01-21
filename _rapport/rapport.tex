@@ -1,24 +1,28 @@
 \documentclass{rapport}
 
-\usepackage{subcaption}
+%--------------------------------------------------
+% Packages de base et mise en forme
+%--------------------------------------------------
 \usepackage{blindtext}
 \usepackage{lipsum}
 \usepackage{enumitem}
 \usepackage{setspace}
-\usepackage{eurosym}
-\usepackage{adjustbox}
 \usepackage{changepage}
-\usepackage{booktabs}
+\usepackage{adjustbox}
 
-% \usepackage{breakurl}
-
+%--------------------------------------------------
+% Mathématiques et symboles
+%--------------------------------------------------
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage{minted}
-\usepackage{fontawesome}
+\usepackage{eurosym}
 
+%--------------------------------------------------
+% Tableaux et couleurs
+%--------------------------------------------------
 \usepackage{booktabs}
 \usepackage[table]{xcolor}
+\usepackage{subcaption}
 
 \definecolor{LightGray}{gray}{0.95}
 \definecolor{pale_red}{HTML}{F4A7A3}
@@ -27,20 +31,37 @@
 \definecolor{pale_yellow}{HTML}{F8E68C}
 \definecolor{pale_blue}{HTML}{97DAD9}
 
+%--------------------------------------------------
+% Graphiques et TikZ
+%--------------------------------------------------
+\usepackage{tikz}
+
 \newcommand{\verticalquote}[1]{%
     \begin{tikzpicture}[remember picture, overlay]
-        \draw[thick,black] (-0.5cm,0) -- (-0.5cm,-0.4cm);  % Ligne verticale
+        \draw[thick,black] (-0.5cm,0) -- (-0.5cm,-0.4cm);
     \end{tikzpicture}%
     \hspace{0.5cm}\itshape#1}
 
-\usepackage{tikz}
-\newcommand{\colorboxsquare}[1]{\tikz \fill[#1] (0,0) rectangle (0.3,0.3);}
+\newcommand{\colorboxsquare}[1]{%
+    \tikz \fill[#1] (0,0) rectangle (0.3,0.3);
+}
 
+%--------------------------------------------------
+% Code, icônes et typographie
+%--------------------------------------------------
+\usepackage{minted}
+\usepackage{fontawesome}
 \usepackage{csquotes}
+
+\newcommand{\ttt}[1]{\texttt{#1}}
+
+%--------------------------------------------------
+% Bibliographie
+%--------------------------------------------------
 \usepackage[
-    backend=biber,   % utilise biber au lieu de bibtex
-    style=numeric,   % citations numérotées
-    sorting=none     % ordre du .bib
+    backend=biber,
+    style=numeric,
+    sorting=none
 ]{biblatex}
 
 \addbibresource{biblio.bib}
@@ -48,43 +69,55 @@
 \setlength{\bibitemsep}{\itemsep}
 \setlength{\bibparsep}{\parsep}
 
-\newcommand{\ttt}[1]{\texttt{#1}}
-
+%--------------------------------------------------
+% Commandes personnalisées
+%--------------------------------------------------
 \newcommand{\myparagraph}[1]{%
-  	\paragraph{#1} \mbox{} \\
-  	\vspace{-1em}
+    \paragraph{#1} \mbox{} \\
+    \vspace{-1em}
 }
 
+%--------------------------------------------------
+% Listes
+%--------------------------------------------------
 \setlist[itemize,1]{label={\textbullet}}
 \setlist[itemize,2]{label={$\blacktriangleright$}}
 
+%--------------------------------------------------
+% Divers / Commentaires
+%--------------------------------------------------
+% \usepackage{breakurl}
 
-\title{Rapport de protection des données} % Titre du fichier
+
+\title{Rapport de protection des données}
 
 \onehalfspacing
 
 \begin{document}
 
 
-%----------- Informations du rapport ---------
+% ========================== Informations du rapport ==========================
 
-\setlogo{images/LogoTPS.png} % Définit le logo
+\setlogo{images/LogoTPS.png}
 \setunif{Télécom Physique Strasbourg}
 \setsujet{Rapport de protection des données}
 \settitre{Analyse de données cyberphysiques sur la distribution d'eau}
-\seteleves{Nathan \textsc{Cerisara}\\Clément \textsc{Desberg}\\Ysée \textsc{Jacquet}\\Lucas \textsc{Levy}} %Nom des élèves
+\seteleves{Nathan \textsc{Cerisara}\\Clément \textsc{Desberg}\\Ysée \textsc{Jacquet}\\Lucas \textsc{Levy}}
 
-%----------- Initialisation -------------------
+% ============================== Initialisation ===============================
 
 \fairepagedegarde
 \fairemarges
 
 \newpage
-\pagenumbering{roman} % réactiver la numérotation
-\setcounter{page}{1}  % réinitialiser le compteur de pages
+% Numérotation
+\pagenumbering{roman}
+\setcounter{page}{1}
 
 \tabledematieres
 \listoffigures
+% Table des tableaux (si nécessaire)
+\listoftables
 
 \section*{Abréviations employées}
 
@@ -99,28 +132,28 @@
 	\item \textbf{NLP} : Natural Language Processing
 \end{itemize}
 
-% % Table des tableaux (si nécessaire)
-% \listoftables
-
-%------------ Corps du rapport ----------------
+% ============================= Corps du rapport ==============================
 
 \newpage
-\pagenumbering{arabic} % réactiver la numérotation
-\setcounter{page}{1}  % réinitialiser le compteur de pages
+% Numérotation
+\pagenumbering{arabic}
+\setcounter{page}{1}
 
 \section*{Introduction}
 
 Ce projet consiste en l'analyse de données cyberphysiques issues d'un système de distribution d'eau potable \cite{dataset}.
 L'objectif principal est de développer et d'évaluer des modèles de machine learning capables de détecter et de classer les anomalies dans le système, telles que les attaques informatiques ou les défaillances physiques.
-Parmi les modèles demandés, K-Nearest Neighbors (KNN), Random Forest, XGBoost et Multi-Layer Perceptron (MLP) ont été implémentés.
-De plus, des modèles basés sur des architectures de transformers adaptées aux données tabulaires on été testés en remplacement de l'algorithme de Classification And Regression Trees (CART).
+Les consignes du projet prévoient l'implémentation de K-Nearest Neighbors (KNN), Random Forest, XGBoost et Multi-Layer Perceptron (MLP) et Classification And Regression Trees (CART).
+Il est également possible de remplacer l'un de ces modèles par un ou plusieurs autres au choix, ce qui a été fait en implémentant des modèles basés sur des transformeurs (Tab Transformer et FT Transformer) ainsi qu'un MLP avec attention à la place du modèle CART.
 Finalement, les performances des modèles développés ont été comparées avec celles fournies dans l'article de référence \cite{article_reference}.
+
+%  ---------------------- I. Données ----------------------
 
 \section{Données}
 
 L'ensemble des données comprend 5 fichiers Comma Separated Values (CSV) sur les relevés physiques et 5 fichiers CSV sur les relevés réseau.
 Dans chaque cas, il y a un fichier de mesures prises en période normale – sans anomalie – et 4 fichiers de mesures prises en période anormale, avec des anomalies correspondant au type de données (attaques informatiques ou défaillances physiques).
-Le sujet de chaque fichier est résumé dans la \hyperref[tab:files]{Table 1}.
+Le sujet de chaque fichier est résumé dans la \hyperref[tab:files]{Table 1} ci-dessous :
 
 \begin{table}[h]
 	\centering
@@ -155,13 +188,15 @@ Le sujet de chaque fichier est résumé dans la \hyperref[tab:files]{Table 1}.
 
 Il y a également des fichiers packet capture (PCAP) fournis pour les données réseau, mais ceux-ci n'ont pas été utilisés dans le cadre de ce projet.
 
-\subsection{Visualisation des données}
+% ------- I.1 Visualisation et analyse des données --------
+
+\subsection{Visualisation et analyse des données}
 
 \subsubsection{Présentation générale des données}
 
 Dans chaque fichier CSV, une ligne représente un ensemble de données collectées à un instant donné, tandis que les colonnes renvoient à différentes informations relevées ou différents dispositifs sur lesquels une mesure a été faite.
-Chaque ligne est associée à une étiquette (\texttt{label}) indiquant si les données correspondent à un état normal (étiquette \texttt{normal}) ou à une anomalie (étiquettes \texttt{DoS}, \texttt{MITM}, \texttt{scan} pour les données réseau et \texttt{physical fault} pour les données physiques).
-La répartition globale peut être observée dans la \hyperref[fig:data_repartition]{Figure 1}.\\
+Chaque ligne est associée à une étiquette (\texttt{label}) indiquant si les données correspondent à un état normal (étiquette \texttt{normal} ou altérée en \texttt{nomal}) ou à une anomalie (étiquettes \texttt{anomaly}, \texttt{DoS}, \texttt{MITM}, \texttt{scan} ou \texttt{physical fault}).
+La répartition globale peut être observée dans la \hyperref[fig:data_repartition]{Figure 1}, tandis que le détail de la répartition des étiquettes peut être consulté dans la \hyperref[tab:labels_repartition]{Table 2}.\\
 
 \begin{figure}[H]
 	\centering
@@ -170,61 +205,42 @@ La répartition globale peut être observée dans la \hyperref[fig:data_repartit
 	\label{fig:data_repartition}
 \end{figure}
 
-\myparagraph{Données physiques}
-
-En s'appuyant sur les informations fournies par \cite{article_reference}, on peut dénombrer les nombre de lignes pour chaque jeu de données physique comme présenté dans la \hyperref[fig:phys_number_entries]{Figure 1}.
-
-\begin{figure}[H]
+\begin{table}[h]
 	\centering
-	\includegraphics[width=0.75\textwidth]{images/phys_number_entries.png}
-	\caption{Nombre d'entrées par fichier de données physiques d'après \cite{article_reference}}
-	\label{fig:phys_number_entries}
-\end{figure}
-
-On constate que le fichier \texttt{phy\_norm.csv} contient un total de \textbf{3 429} entrées, tandis que les fichiers d'attaques contiennent entre 1 2000 et 2 421 entrées chacun, et sont donc plus petits lorsque pris indépendamment.
-Cela est expliqué dans \cite{article_reference} par le fait que les périodes d'attaques sont plus courtes que la périodes normale qui a été relevée :
-
-\begin{table}[h!]
-	\centering
-	\resizebox{\textwidth}{!}{%
-	\begin{tabular}{|l}
-		\textit{Specifically, the first acquisition lasts 1 hour and shows a total of 12 process cycles: it} \\
-		\textit{refers to the WDT while working in normal conditions without any attack. On the} \\
-		\textit{contrary, the remaining three acquisitions, which last 60 minutes, provide 8, 7 and 4} \\
-		\textit{process cycles respectively.}
-	\end{tabular}
-	}
-	\label{tab:quote}
-\end{table}
-
-Les mesures physiques sont reportées toutes les secondes et concernent des paramètres tels que l'état des pompes, les valeurs de différents capteurs, etc.
-En tout, il y a 41 caractéristiques, présentées dans la \hyperref[tab:physical_features]{Table 2} (une traduction du tableau original présent dans \cite{article_reference}).
-
-\begin{table}[h!]
-	\centering
-	\begin{tabular}{|c|l|l|}
+	\begin{tabular}{|l|rrr|}
 		\hline
-		\textbf{N°} & \textbf{Nom} & \textbf{Description} \\ \hline
-		1  & Time & Date d'acquisition \\ \hline
-		2-9  & Tank\_i & Valeur du capteur de presion du réservoir i (i allant de 1 à 8) \\ \hline
-		10-15  & Pump\_i & État de la pompe i (i allant de 1 à 6) \\ \hline
-		16-19  & Flow\_sensor\_i & Valeur du capteur de débit i (i allant de 1 à 4) \\ \hline
-		20-41  & Valv\_i & État de l'électrovanne i (i allant de 1 à 22) \\ \hline
+		\textbf{Étiquette} & \textbf{Données totales} & \textbf{Données réseau} & \textbf{Données physiques} \\
+		\hline
+		normal          & 20 461 956 & 20 453 299 & 8 657 \\
+		nomal           & 249        & 0          & 249 \\
+		\hline
+		\textbf{Total normales} & \textbf{20 462 205} & \textbf{20 453 299} & \textbf{8 906} \\
+		\hline
+		DoS             & 5 671 852  & 5 671 542  & 310 \\
+		MITM            & 2 156 417  & 2 155 409  & 1 008 \\
+		physical fault  & 1 549 189  & 1 548 504  & 685 \\
+		anomaly         & 389        & 389        & 0 \\
+		scan            & 75         & 61         & 14 \\
+		\hline
+		\textbf{Total attaques} & \textbf{9 377 922}  & \textbf{9 375 905}  & \textbf{2 017} \\
+		\hline
+		\textbf{TOTAL} & \textbf{29 840 127} & \textbf{29 829 204} & \textbf{10 923} \\
+		\hline
 	\end{tabular}
-	\caption{Caractéristiques des données physiques}
-	\label{tab:physical_features}
+	\caption{Répartition des données par label}
+	\label{tab:labels_repartition}
 \end{table}
 
-\myparagraph{Données réseau}
+\subsubsection{Présentation des données réseau}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.75\textwidth]{images/net_number_entries.png}
+	\includegraphics[width=0.75\textwidth]{images/article/nb_samples_network.png}
 	\caption{Nombre d'entrées par fichier de données réseau d'après \cite{article_reference}}
 	\label{fig:net_number_entries}
 \end{figure}
 
-Au nombre de 14, les colonnes des données réseau sont listées dans la \hyperref[tab:network_features]{Table 3} (une traduction du tableau original présent dans \cite{article_reference}).
+Au nombre de 14, les colonnes des données réseau sont listées dans la \hyperref[tab:network_features]{Table 4} (une traduction du tableau original présent dans \cite{article_reference}).
 
 \begin{table}[h!]
 	\centering
@@ -251,8 +267,53 @@ Au nombre de 14, les colonnes des données réseau sont listées dans la \hyperr
 	\caption{Caractéristiques des données réseau}
 	\label{tab:network_features}
 \end{table}
-	
-\subsubsection{Analyse des données}
+
+\subsubsection{Présentation des données physiques}
+
+En s'appuyant sur les informations fournies par \cite{article_reference}, on peut dénombrer les nombre de lignes pour chaque jeu de données physique comme présenté dans la \hyperref[fig:phys_number_entries]{Figure 2}.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.75\textwidth]{images/article/nb_samples_physical.png}
+	\caption{Nombre d'entrées par fichier de données physiques d'après \cite{article_reference}}
+	\label{fig:phys_number_entries}
+\end{figure}
+
+On constate que le fichier \texttt{phy\_norm.csv} contient un total de \textbf{3 429} entrées, tandis que les fichiers d'attaques contiennent entre 1 2000 et 2 421 entrées chacun, et sont donc plus petits lorsque pris indépendamment.
+Cela est expliqué dans \cite{article_reference} par le fait que les périodes d'attaques sont plus courtes que la périodes normale qui a été relevée :
+
+\begin{table}[h!]
+	\centering
+	\resizebox{\textwidth}{!}{%
+	\begin{tabular}{|l}
+		\textit{Specifically, the first acquisition lasts 1 hour and shows a total of 12 process cycles: it} \\
+		\textit{refers to the WDT while working in normal conditions without any attack. On the} \\
+		\textit{contrary, the remaining three acquisitions, which last 60 minutes, provide 8, 7 and 4} \\
+		\textit{process cycles respectively.}
+	\end{tabular}
+	}
+	\label{tab:quote}
+\end{table}
+
+Les mesures physiques sont reportées toutes les secondes et concernent des paramètres tels que l'état des pompes, les valeurs de différents capteurs, etc.
+En tout, il y a 41 caractéristiques, présentées dans la \hyperref[tab:physical_features]{Table 3} (une traduction du tableau original présent dans \cite{article_reference}).
+
+\begin{table}[h!]
+	\centering
+	\begin{tabular}{|c|l|l|}
+		\hline
+		\textbf{N°} & \textbf{Nom} & \textbf{Description} \\ \hline
+		1  & Time & Date d'acquisition \\ \hline
+		2-9  & Tank\_i & Valeur du capteur de presion du réservoir i (i allant de 1 à 8) \\ \hline
+		10-15  & Pump\_i & État de la pompe i (i allant de 1 à 6) \\ \hline
+		16-19  & Flow\_sensor\_i & Valeur du capteur de débit i (i allant de 1 à 4) \\ \hline
+		20-41  & Valv\_i & État de l'électrovanne i (i allant de 1 à 22) \\ \hline
+	\end{tabular}
+	\caption{Caractéristiques des données physiques}
+	\label{tab:physical_features}
+\end{table}
+
+% ------------ I.2 Pré-traitement des données -------------
 
 \subsection{Pré-traitement}
 \label{label:preprocessing}
@@ -270,7 +331,11 @@ L'ensemble des données est soumis a un pré-traitement général avant d'être 
 	\item Enfin, les données sont normalisées avec \texttt{StandardScaler} de \texttt{scikit-learn} pour garantir que chaque caractéristique ait une moyenne nulle et une variance unitaire.
 \end{enumerate}
 
+% ------------ II. Application des algorithmes ------------
+
 \section{Application des algorithmes}
+
+% --------------- II.1 Algorithmes utilisés ---------------
 
 \subsection{Algorithmes utilisés}
 
@@ -280,19 +345,21 @@ L'ensemble des données est soumis a un pré-traitement général avant d'être 
 
 Parmi les modèles demandés, les suivants ont été implémentés :
 \begin{itemize}
-    \item KNN (en \texttt{small}, \texttt{medium} et \texttt{large})
-    \item Random Forest (en \texttt{small},  \texttt{medium} et \texttt{large})
-    \item XGBoost (en \texttt{small} et \texttt{medium})
-    \item MLP (en \texttt{small}, \texttt{medium} et \texttt{large})
+    \item \textbf{KNN} (en \texttt{small}, \texttt{medium} et \texttt{large})
+    \item \textbf{Random Forest} (en \texttt{small},  \texttt{medium} et \texttt{large})
+    \item \textbf{XGBoost} (en \texttt{small} et \texttt{medium})
+    \item \textbf{MLP} (en \texttt{small}, \texttt{medium} et \texttt{large})
 \end{itemize}
 
 Le modèle CART n'a pas été implémenté, mais a été remplacé par les trois modèles ci-dessous :
 
 \begin{itemize}
-	\item Tab Transformer (en \texttt{small} et \texttt{medium}) : modèle basé sur des transformeurs appliqués aux données tabulaires, utilisant des embeddings pour les variables catégorielles et un mécanisme d’auto-attention pour capturer les interactions entre les caractéristiques.
-	\item FT Transformer (en \texttt{small} et \texttt{medium}) : variante optimisée du transformeur pour données tabulaires, combinant embeddings de caractéristiques et couches d’auto-attention avec une tête de prédiction dédiée, offrant de bonnes performances tout en restant peu coûteuse en calcul.
-	\item MLP avec attention (en \texttt{small}, en \texttt{medium} et \texttt{large}) : même architecture que le MLP classique, mais avec un mécanisme d'attention ajouté.
+	\item \textbf{Tab Transformer} (en \texttt{small} et \texttt{medium}) : modèle basé sur des transformeurs appliqués aux données tabulaires, utilisant des embeddings pour les variables catégorielles et un mécanisme d’auto-attention pour capturer les interactions entre les caractéristiques.
+	\item \textbf{FT Transformer} (en \texttt{small} et \texttt{medium}) : variante optimisée du transformeur pour données tabulaires, combinant embeddings de caractéristiques et couches d’auto-attention avec une tête de prédiction dédiée, offrant de bonnes performances tout en restant peu coûteuse en calcul.
+	\item \textbf{MLP avec attention} (en \texttt{small}, en \texttt{medium} et \texttt{large}) : même architecture que le MLP classique, mais avec un mécanisme d'attention ajouté.
 \end{itemize}
+
+% ---------- II.2 Organisation des entraînements ----------
 
 \subsection{Organisation des entraînements}
 
@@ -307,6 +374,8 @@ Les différents modèles sont entraînés individuellement avec leur script d'en
 
 Les résultats de chaque entraînement sont enregistrés de manière structurée dans le dossier \texttt{experiments} en fonction de leur configuration, permettant une analyse et une comparaison faciles des performances des modèles.
 Le détail des résultats enregistrés est présenté dans la section suivante.
+
+% ----------- II.3 Hyperparamètres et résultats -----------
 
 \subsection{Hyperparamères et résultats}
 \label{sec:hyperparameters}
@@ -327,12 +396,29 @@ Concernant les résultats, sont enregistrés :
 \end{itemize}
 
 Deux rapports récapitulatifs de tous les entraînements sont ensuite générés avec le script \texttt{src/analyze\_results.py}, un pour les jeux de données physiques \texttt{results\_analysi} \texttt{s/physical/report.md} et un pour les jeux de données réseaux \texttt{results\_analysis/netwo} \texttt{rk/report.md}.
+On y trouve :
+
+\begin{itemize}
+	\item un tableau comparatif des performances de chaque modèle, ordonné par F1-score (macro) décroissant,
+	\item un tableau récapitulatif des classes mal classées par chaque modèle, ordonné par taux d'erreur décroissant,
+	\item un tableau récapitulatif du top 20 des entrées les moins bien classés sur l'ensemble des modèles, avec la prédiction majoritaire,
+	\item une matrices de corrélation des erreurs entre les différents modèles,
+	\item l'ensemble des courbes d'entraînement pour tous les modèles.
+\end{itemize}
+
+% -------------------- III. Résultats ---------------------
 
 \section{Évaluation et comparaison avec les données de référence}
 
+% ----------------- III.1 Données réseau ------------------
+
+\subsection{Données réseau}
+
+% ---------------- III.2 Données physiques ----------------
+
 \subsection{Données physiques}
 
-D'après les résultats présentés dans la \hyperref[tab:physical_small_results]{Table 4}, le modèle \texttt{small\_knn} obtient les meilleures performances sur le jeu de données \texttt{physical\_small}, avec une précision de \textbf{97,74\%}, un F1-macro de \textbf{0,8007}, une précision équilibrée de \textbf{0,8235} et un MCC de \textbf{0,9402}.
+D'après les résultats présentés dans la \hyperref[tab:physical_small_results]{Table 5}, le modèle \texttt{small\_knn} obtient les meilleures performances sur le jeu de données \texttt{physical\_small}, avec une précision de \textbf{97,74\%}, un F1-macro de \textbf{0,8007}, une précision équilibrée de \textbf{0,8235} et un MCC de \textbf{0,9402}.
 Le temps d'entraînement est également très faible (quasi-instantané), ce qui en fait un choix efficace pour ce type de données.
 À l'inverse, le modèle \texttt{small\_random\_forest} affiche les performances les plus faibles, ce qui peut s'expliquer par une répartition des classses TO COMPLETE.
 
@@ -358,7 +444,7 @@ Le temps d'entraînement est également très faible (quasi-instantané), ce qui
 \end{table}
 
 En comparant les résultats obtenus avec ceux de l'article de référence \cite{article_reference}, on constate que nos modèles TO COMPLETE.
-En effet dans la \hyperref[tab:results_physical]{Table 5}, on peut voir que les performances des KNN, Random Forest, SVM et Naive Bayes (NB) sont TO COMPLETE.
+En effet dans la \hyperref[tab:results_physical]{Table 6}, on peut voir que les performances des KNN, Random Forest, SVM et Naive Bayes (NB) sont TO COMPLETE.
 
 \begin{table}[ht]
 	\centering
@@ -376,19 +462,19 @@ En effet dans la \hyperref[tab:results_physical]{Table 5}, on peut voir que les 
 	\label{tab:results_physical}
 \end{table}
 
-En s'attardant sur les erreurs commises par les différents modèles, on peut observer certaines corrélation entre celles-ci, comme le montre la \hyperref[fig:corrmat_physical]{Figure 1}.
+En s'attardant sur les erreurs commises par les différents modèles, on peut observer certaines corrélation entre celles-ci, comme le montre la \hyperref[fig:corrmat_physical]{Figure 4}.
 Par exemple — et sasns surprise — le modèle MLP et le modèle MLP avec attention présentent une forte corrélation dans leurs erreurs.
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1\textwidth]{images/correlation_heatmap_physical.png}
+	\includegraphics[width=1\textwidth]{images/correlation_heatmap/physical.png}
 	\caption{Matrice de corrélation des erreurs entre les modèles pour les données physiques}
 	\label{fig:corrmat_physical}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1\textwidth]{images/correlation_heatmap_network.png}
+	\includegraphics[width=1\textwidth]{images/correlation_heatmap/network.png}
 	\caption{Matrice de corrélation des erreurs entre les modèles pour les données réseau}
 	\label{fig:corrmat_network}
 \end{figure}
@@ -435,6 +521,38 @@ De même, l'étiquiette \texttt{scan} est plusieurs fois prédite de manière er
 \end{table}
 
 \section*{Conclusion}
+
+\newpage
+
+\section*{Retour personnel : CERISARA Nathan}
+
+\subsection*{Contribution}
+
+\subsection*{Avis}
+
+\newpage
+
+\section*{Retour personnel : DESBERG Clément}
+
+\subsection*{Contribution}
+
+\subsection*{Avis}
+
+\newpage
+
+\section*{Retour personnel : JACQUET Ysée}
+
+\subsection*{Contribution}
+
+\subsection*{Avis}
+
+\newpage
+
+\section*{Retour personnel : LEVY Lucas}
+
+\subsection*{Contribution}
+
+\subsection*{Avis}
 
 \newpage
 
