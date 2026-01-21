@@ -16,7 +16,9 @@ cached_datasets
 
 _rapport/_minted-rapport
 _rapport/*.aux
+_rapport/*.bbl
 _rapport/*.bcf
+_rapport/*.blg
 _rapport/*.lof
 _rapport/*.log
 _rapport/*.nlo
