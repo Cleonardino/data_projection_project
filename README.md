@@ -4,7 +4,7 @@ A benchmark for analyzing machine learning models on Cyber-Physical System (CPS)
 
 ## Project Structure
 
-```
+```shell
 ├── app/                    # App source code with pages
 │   ├── contact.py
 │   ├── data_overview.py
