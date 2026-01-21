@@ -17,15 +17,18 @@ for key in experiments:
         experiments[key]["history"]
     ))
 
+model_data.sort(key=lambda md : md.get_model_title())
+
 model_pages: list = []
 
 for model in model_data:
     model_pages.append(st.Page(
         model.page_function,
-        title=model.title,
+        title=model.get_model_title(),
         icon=":material/keyboard_double_arrow_right:",
         url_path=model.title
     ))
+
 
 navigation = st.navigation(
     {

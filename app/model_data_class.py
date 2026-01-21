@@ -8,16 +8,23 @@ class ModelData:
         self.metrics = metrics
         self.train_history = train_history
     
+    def get_model_title(self):
+        parts = self.title.split('_')
+
+        if len(parts) >= 3:
+            model_name = '_'.join(parts[2:])
+            return model_name
+        else:
+            return self.title
+    
     def page_function(self):
         parts = self.title.split('_')
-        # Parsing the title
+
         if len(parts) >= 3:
             date = parts[0]
-            model_name = '_'.join(parts[3:])
-            st.title(model_name)
             st.caption(date)
-        else:
-            st.title(self.title)
+
+        st.title(self.get_model_title())
         
         st.header("Training")
         st.write(f"Epochs Count : {self.metrics['training']['total_epochs']}")
