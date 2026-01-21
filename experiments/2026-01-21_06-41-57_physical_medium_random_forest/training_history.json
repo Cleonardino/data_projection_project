@@ -1,0 +1,15 @@
+{
+  "epochs": [
+    1
+  ],
+  "train_loss": [],
+  "val_loss": [],
+  "train_accuracy": [
+    0.9957638774275183
+  ],
+  "val_accuracy": [
+    0.963392312385601
+  ],
+  "best_epoch": 1,
+  "training_time_seconds": 0.589317798614502
+}

@@ -1,0 +1,30 @@
+data:
+  balancing: oversampling_copy
+  dataset_type: network
+  normalize: true
+  nrows_per_file: 500000
+  seed: 42
+  test_ratio: 0.15
+  train_ratio: 0.7
+  val_ratio: 0.15
+experiment:
+  name: network_medium
+  save_history: true
+  save_model: true
+  save_predictions: true
+model:
+  hyperparameters:
+    max_depth: 12
+    min_samples_split: 5
+    n_estimators: 200
+  name: random_forest
+training:
+  batch_size: 32
+  early_stopping: true
+  epochs: 50
+  learning_rate: 0.001
+  optimizer: adamw
+  patience: 5
+  scheduler: cosine
+  use_gpu: true
+  weight_decay: 0.0001

@@ -1,51 +1,51 @@
 sample_idx,true_label,times_wrong,wrong_by_models,common_wrong_pred
-189150,normal,10,10,physical fault
-4733,normal,10,10,physical fault
-21220,normal,10,10,physical fault
-86862,normal,10,10,physical fault
-16365,normal,10,10,physical fault
-86878,normal,10,10,physical fault
-46206,normal,10,10,physical fault
-214963,normal,10,10,physical fault
-24261,normal,10,10,physical fault
-148212,normal,10,10,physical fault
-101554,normal,10,10,physical fault
-223176,normal,10,10,physical fault
-211383,normal,10,10,physical fault
-129596,normal,10,10,physical fault
-86916,normal,10,10,physical fault
-163619,normal,10,10,physical fault
-92314,normal,10,10,physical fault
-24147,normal,10,10,physical fault
-111078,normal,10,10,physical fault
-98600,normal,10,10,physical fault
-132969,normal,10,10,physical fault
-132837,normal,10,10,physical fault
-69113,normal,10,10,physical fault
-45631,normal,10,10,physical fault
-220208,normal,10,10,physical fault
-35019,normal,10,10,physical fault
-204430,normal,10,10,physical fault
-207433,normal,10,10,physical fault
-164834,normal,10,10,physical fault
-21213,normal,10,10,physical fault
-129971,normal,10,10,physical fault
-4491,normal,10,10,physical fault
-197763,normal,10,10,physical fault
-57037,normal,10,10,physical fault
-56838,normal,10,10,physical fault
-140389,normal,10,10,physical fault
-56920,normal,10,10,physical fault
-132851,normal,10,10,physical fault
-133043,normal,10,10,physical fault
-164370,normal,10,10,physical fault
-130120,normal,10,10,physical fault
-71272,normal,10,10,physical fault
-140187,normal,10,10,physical fault
-98369,normal,10,10,physical fault
-199158,normal,10,10,physical fault
-133546,normal,10,10,physical fault
-193128,normal,10,10,physical fault
-217385,normal,10,10,physical fault
-84008,normal,10,10,physical fault
-138087,normal,10,10,physical fault
+223176,normal,19,19,physical fault
+191107,normal,19,19,MITM
+47895,normal,19,19,physical fault
+157312,normal,19,19,MITM
+189488,normal,19,19,MITM
+159837,normal,19,19,physical fault
+158652,normal,19,19,physical fault
+17761,normal,19,19,MITM
+25209,normal,19,19,MITM
+174170,normal,19,19,MITM
+84008,normal,18,18,physical fault
+68339,normal,18,18,MITM
+153063,normal,18,18,MITM
+149053,normal,18,18,physical fault
+86878,normal,18,18,physical fault
+78176,normal,18,18,physical fault
+182334,normal,18,18,MITM
+153519,normal,18,18,MITM
+123353,normal,18,18,MITM
+128459,normal,18,18,physical fault
+195086,normal,18,18,physical fault
+86916,normal,18,18,physical fault
+131497,normal,18,18,MITM
+161346,normal,18,18,MITM
+124063,normal,18,18,physical fault
+213397,normal,18,18,MITM
+153993,normal,18,18,MITM
+28766,normal,18,18,MITM
+3761,normal,18,18,physical fault
+158340,normal,18,18,physical fault
+115377,normal,18,18,physical fault
+173415,normal,18,18,physical fault
+186830,normal,18,18,physical fault
+187282,normal,18,18,physical fault
+63381,normal,18,18,MITM
+47204,normal,18,18,physical fault
+191825,normal,18,18,physical fault
+10888,normal,18,18,physical fault
+168564,normal,18,18,physical fault
+139246,normal,18,18,MITM
+190310,normal,18,18,physical fault
+150985,MITM,18,18,physical fault
+165356,normal,18,18,MITM
+204890,normal,18,18,MITM
+22874,normal,18,18,physical fault
+143302,normal,18,18,MITM
+32081,normal,18,18,physical fault
+10863,normal,18,18,physical fault
+101739,normal,18,18,MITM
+39661,normal,18,18,physical fault
