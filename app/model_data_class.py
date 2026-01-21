@@ -19,17 +19,11 @@ class ModelData:
         else:
             st.title(self.title)
         
-        # Training Overview
         st.header("Training")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Epochs Count", self.metrics["training"]["total_epochs"])
-        with col2:
-            st.metric("Best Epoch", self.metrics["training"]["best_epoch"])
-        with col3:
-            st.metric("Training Time", f"{self.metrics['training']['training_time_seconds']:.2f}s")
+        st.write(f"Epochs Count : {self.metrics['training']['total_epochs']}")
+        st.write(f"Best Epoch : {self.metrics['training']['best_epoch']}")
+        st.write(f"Training Time : {self.metrics['training']['training_time_seconds']:.2f}s")
         
-        # Training History
         st.subheader("Training History")
         
         max_len = 0
@@ -105,28 +99,12 @@ class ModelData:
                 metrics_data = self.metrics['metrics'][dataset]
                 
                 st.subheader("General Metrics")
-                col1, col2, col3, col4 = st.columns(4)
-                with col1:
-                    st.metric("Accuracy", f"{metrics_data['accuracy']:.4f}")
-                with col2:
-                    st.metric("Balanced Accuracy", f"{metrics_data['balanced_accuracy']:.4f}")
-                with col3:
-                    st.metric("F1 (Macro)", f"{metrics_data['f1_macro']:.4f}")
-                with col4:
-                    st.metric("MCC", f"{metrics_data['mcc']:.4f}")
+                st.write(f"Accuracy : {metrics_data['accuracy']:.4f}")
+                st.write(f"Balanced Accuracy : {metrics_data['balanced_accuracy']:.4f}")
+                st.write(f"F1 (Macro) : {metrics_data['f1_macro']:.4f}")
+                st.write(f"MCC : {metrics_data['mcc']:.4f}")
                 
-                # Detailed metrics table
-                st.subheader("Detailed Metrics")
-                detailed_metrics_df = pd.DataFrame({
-                    'Precision (Macro)': [metrics_data['precision_macro']],
-                    'Recall (Macro)': [metrics_data['recall_macro']],
-                    'Precision (Weighted)': [metrics_data['precision_weighted']],
-                    'Recall (Weighted)': [metrics_data['recall_weighted']],
-                    'F1 (Weighted)': [metrics_data['f1_weighted']]
-                })
-                st.dataframe(detailed_metrics_df, use_container_width=True)
-                
-                st.subheader("Per-Class Metrics")
+                st.subheader("Class Metrics")
                 num_classes = len(metrics_data['per_class_precision'])
                 per_class_df = pd.DataFrame({
                     'Class': [f'Class {i}' for i in range(num_classes)],
