@@ -441,13 +441,9 @@ On y trouve :
 
 \section{Évaluation et comparaison avec les données de référence}
 
-% ----------------- III.1 Données réseau ------------------
+% ------- III.1 Indicateurs et résultats principaux -------
 
-\subsection{Données réseau}
-
-% ---------------- III.2 Données physiques ----------------
-
-\subsection{Données physiques}
+\subsection{Indicateurs et résultats principaux}
 
 D'après les résultats présentés dans la \hyperref[tab:physical_small_results]{Table 5}, le modèle \texttt{small\_knn} obtient les meilleures performances sur le jeu de données \texttt{physical\_small}, avec une précision de \textbf{97,74\%}, un F1-macro de \textbf{0,8007}, une précision équilibrée de \textbf{0,8235} et un MCC de \textbf{0,9402}.
 Le temps d'entraînement est également très faible (quasi-instantané), ce qui en fait un choix efficace pour ce type de données.
@@ -493,21 +489,25 @@ En effet dans la \hyperref[tab:results_physical]{Table 6}, on peut voir que les 
 	\label{tab:results_physical}
 \end{table}
 
-En s'attardant sur les erreurs commises par les différents modèles, on peut observer certaines corrélation entre celles-ci, comme le montre la \hyperref[fig:corrmat_physical]{Figure 4}.
-Par exemple — et sasns surprise — le modèle MLP et le modèle MLP avec attention présentent une forte corrélation dans leurs erreurs.
+% --------------- III.2 Analyse des erreurs ---------------
 
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\textwidth]{images/correlation_heatmap/physical.png}
-	\caption{Matrice de corrélation des erreurs entre les modèles pour les données physiques}
-	\label{fig:corrmat_physical}
-\end{figure}
+\subsection{Analyse des erreurs}
+
+En s'attardant sur les erreurs commises par les différents modèles, on peut observer certaines corrélation entre celles-ci, comme le montre les \hyperref[fig:corrmat_network]{Figure 6} et \hyperref[fig:corrmat_physical]{Figure 7}.
+Par exemple — et sasns surprise — le modèle MLP et le modèle MLP avec attention présentent une forte corrélation dans leurs erreurs.
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=1\textwidth]{images/correlation_heatmap/network.png}
 	\caption{Matrice de corrélation des erreurs entre les modèles pour les données réseau}
 	\label{fig:corrmat_network}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{images/correlation_heatmap/physical.png}
+	\caption{Matrice de corrélation des erreurs entre les modèles pour les données physiques}
+	\label{fig:corrmat_physical}
 \end{figure}
 
 Comme il y a très peu de faible corrélations, il est raisonnable de penser que certains échantillons sont systématiquement mal classés par tous les modèles.
