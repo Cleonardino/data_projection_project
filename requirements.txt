@@ -9,5 +9,5 @@ matplotlib
 seaborn
 imblearn
 streamlit
-
+plotly
 

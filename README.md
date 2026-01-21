@@ -5,6 +5,12 @@ A benchmark for analyzing machine learning models on Cyber-Physical System (CPS)
 ## Project Structure
 
 ```
+├── app/                    # App source code with pages
+│   ├── contact.py
+│   ├── data_overview.py
+│   ├── home.py
+│   ├── model_data_class.py # Class used to create automatically the model pages
+│   └── models_overview.py
 ├── src/                    # Source code
 │   ├── models/             # Neural network and ML model implementations
 │   ├── lib_data.py         # Data loading, preprocessing, and caching
@@ -12,6 +18,7 @@ A benchmark for analyzing machine learning models on Cyber-Physical System (CPS)
 │   ├── train_all.py        # Batch training script
 │   ├── generate_configs.py # Configuration generator
 │   └── analyze_results.py  # automated analysis and reporting
+├── app.py                  # Main entry point
 ├── configs/                # Generated YAML configuration files
 ├── dataset/                # Raw data directory
 ├── experiments/            # Training outputs (logs, models, metrics)
@@ -20,19 +27,7 @@ A benchmark for analyzing machine learning models on Cyber-Physical System (CPS)
 
 ## Setup
 
-1. **Dependencies**: Ensure the following Python packages are installed:
-
-   - `numpy`
-   - `pandas`
-   - `scikit-learn`
-   - `torch`
-   - `tqdm`
-   - `pyyaml`
-   - `imblearn`
-   - `xgboost`
-   - `matplotlib`
-   - `seaborn`
-   - `streamlit`
+1. **Dependencies**: Ensure that all modules in the `requirements.txt` file are installed
 2. **Data**: Place your datasets in the `dataset/` directory:
 
    - Physical data: `dataset/Physical dataset/*.csv`
