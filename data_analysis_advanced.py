@@ -30,7 +30,7 @@ def analyze_file_complete(file, dataset_type):
     Optimisé pour minimiser les lectures multiples
     """
     print(f"  → Analyse en cours...")
-    
+
     results = {
         'file': file,
         'type': dataset_type,
@@ -53,7 +53,7 @@ def analyze_file_complete(file, dataset_type):
         # Quality
         'missing_ip_count': 0
     }
-    
+
     # Configuration
     if file in files_virgule:
         sep = ","
@@ -64,44 +64,44 @@ def analyze_file_complete(file, dataset_type):
     else:
         sep = r"\s+"
         on_bad_lines = 'skip'
-    
+
     encoding = "latin1" if file == "Physical dataset/phy_att_4.csv" else "utf-16" if file.startswith("Physical dataset") else "utf-8"
-    
+
     chunk_count = 0
     try:
         for chunk in pd.read_csv(
-            dataset_dir + file, 
-            sep=sep, 
-            encoding=encoding, 
-            engine="python", 
+            dataset_dir + file,
+            sep=sep,
+            encoding=encoding,
+            engine="python",
             chunksize=CHUNK_SIZE,
             on_bad_lines=on_bad_lines
         ):
             chunk_count += 1
-            
+
             # Normalisation
             if "Physical dataset" in file:
                 chunk = chunk.rename(columns={"Label": "label"})
             chunk.columns = chunk.columns.str.strip()
-            
+
             if results['columns'] is None:
                 results['columns'] = chunk.columns.tolist()
                 results['missing_values'] = {col: 0 for col in results['columns']}
-            
+
             results['total_rows'] += len(chunk)
-            
+
             if chunk_count % 5 == 0:
                 print(f"    • Chunk {chunk_count} traité ({results['total_rows']:,} lignes)")
-            
+
             # Labels
             if 'label' in chunk.columns:
                 chunk["label"] = chunk["label"].astype("category")
                 results['label_distribution'].update(chunk["label"].value_counts().to_dict())
-            
+
             # Valeurs manquantes
             for col in chunk.columns:
                 results['missing_values'][col] += chunk[col].isna().sum()
-            
+
             # Analyse temporelle
             for col in ['Time', 'time', 'timestamp']:
                 if col in chunk.columns:
@@ -115,7 +115,7 @@ def analyze_file_complete(file, dataset_type):
                             chunk[col] = pd.to_datetime(chunk[col], errors='coerce', dayfirst=True)
                         hours = chunk[col].dt.hour.dropna()
                         results['hourly_distribution'].update(hours.value_counts().to_dict())
-                        
+
                         valid_times = chunk[col].dropna()
                         if len(valid_times) > 0:
                             if results['time_range'] is None:
@@ -126,20 +126,20 @@ def analyze_file_complete(file, dataset_type):
                     except:
                         pass
                     break
-            
+
             # Network specific
             if dataset_type == 'network':
                 if 'ip_s' in chunk.columns:
                     results['unique_ips_src'].update(chunk['ip_s'].dropna().unique())
                     results['top_talkers'].update(chunk['ip_s'].value_counts().to_dict())
                     results['missing_ip_count'] += chunk['ip_s'].isna().sum()
-                
+
                 if 'ip_d' in chunk.columns:
                     results['unique_ips_dst'].update(chunk['ip_d'].dropna().unique())
-                
+
                 if 'proto' in chunk.columns:
                     results['protocol_distribution'].update(chunk['proto'].value_counts().to_dict())
-                    
+
                     # Protocoles par label
                     if 'label' in chunk.columns:
                         top_labels = chunk['label'].value_counts().head(3).index
@@ -148,17 +148,17 @@ def analyze_file_complete(file, dataset_type):
                                 results['protocols_by_label'][label] = Counter()
                             label_data = chunk[chunk['label'] == label]
                             results['protocols_by_label'][label].update(label_data['proto'].value_counts().to_dict())
-            
+
             # Physical specific
             elif dataset_type == 'physical':
                 if 'label' in chunk.columns:
                     sensor_cols = [col for col in chunk.columns if col not in ['Time', 'label', 'Label_n']]
-                    
+
                     # Compter capteurs actifs par label
                     for label in chunk['label'].unique():
                         if label not in results['active_sensors_by_label']:
                             results['active_sensors_by_label'][label] = set()
-                        
+
                         label_data = chunk[chunk['label'] == label]
                         for col in sensor_cols[:20]:
                             # Vérifier si le capteur est actif dans ce chunk
@@ -171,12 +171,12 @@ def analyze_file_complete(file, dataset_type):
                                         results['active_sensors_by_label'][label].add(col)
                             except:
                                 pass
-    
+
     except Exception as e:
         print(f"Erreur lors de l'analyse: {str(e)}")
-    
+
     print(f"Analyse terminée : {results['total_rows']:,} lignes analysées")
-    
+
     # Convertir sets en counts
     if dataset_type == 'network':
         results['unique_ips_src'] = len(results['unique_ips_src'])
@@ -185,7 +185,7 @@ def analyze_file_complete(file, dataset_type):
         # Convertir les sets de capteurs en counts
         for label in results['active_sensors_by_label']:
             results['active_sensors_by_label'][label] = len(results['active_sensors_by_label'][label])
-    
+
     return results
 
 def write_analysis_to_file():
@@ -193,43 +193,43 @@ def write_analysis_to_file():
     print("\n" + "="*80)
     print("DÉBUT DE L'ANALYSE DES DATASETS".center(80))
     print("="*80 + "\n")
-    
+
     all_results = {
         'network': [],
         'physical': []
     }
-    
+
     with open(output_file, 'w', encoding='utf-8') as f:
         write_section(f, "ANALYSE COMPLÈTE DES DATASETS - NETWORK & PHYSICAL")
         f.write(f"Date de génération: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        
+
         # Analyse Network Dataset
         write_section(f, "PARTIE 1: NETWORK DATASET")
         print(f"\nAnalyse des fichiers NETWORK ({len(files_network)} fichiers)")
-        
+
         for idx, file in enumerate(files_network, 1):
             print(f"\n[{idx}/{len(files_network)}] {file}")
             write_section(f, f"Fichier: {file}")
-            
+
             results = analyze_file_complete(file, 'network')
             all_results['network'].append(results)
-            
+
             # Écrire les résultats
             f.write("\n--- STATISTIQUES DE BASE ---\n")
             f.write(f"Nombre total de lignes: {results['total_rows']:,}\n")
             f.write(f"Nombre de colonnes: {len(results['columns'])}\n\n")
-            
+
             f.write("Distribution des labels:\n")
             for label, count in sorted(results['label_distribution'].items(), key=lambda x: x[1], reverse=True):
                 percentage = (count / results['total_rows']) * 100 if results['total_rows'] > 0 else 0
                 f.write(f"  {label}: {count:,} ({percentage:.2f}%)\n")
-            
+
             f.write("\nValeurs manquantes (principales):\n")
             for col, count in sorted(results['missing_values'].items(), key=lambda x: x[1], reverse=True)[:5]:
                 if count > 0:
                     percentage = (count / results['total_rows']) * 100
                     f.write(f"  {col}: {count:,} ({percentage:.2f}%)\n")
-            
+
             f.write("\n--- ANALYSE TEMPORELLE ---\n")
             if results['has_time'] and results['time_range']:
                 f.write(f"Période: {results['time_range'][0]} à {results['time_range'][1]}\n")
@@ -238,71 +238,71 @@ def write_analysis_to_file():
                     f.write(f"  Heure {hour}: {count:,} événements\n")
             else:
                 f.write("Pas de données temporelles\n")
-            
+
             f.write("\n--- ANALYSE TOPOLOGIQUE ---\n")
             f.write(f"IPs sources uniques: {results['unique_ips_src']:,}\n")
             f.write(f"IPs destinations uniques: {results['unique_ips_dst']:,}\n")
             f.write(f"IPs sources manquantes: {results['missing_ip_count']:,}\n")
-            
+
             f.write("\nDistribution des protocoles:\n")
             for proto, count in sorted(results['protocol_distribution'].items(), key=lambda x: x[1], reverse=True)[:10]:
                 f.write(f"  {proto}: {count:,}\n")
-            
+
             f.write("\nTop 10 des IPs les plus actives:\n")
             for ip, count in results['top_talkers'].most_common(10):
                 f.write(f"  {ip}: {count:,} paquets\n")
-            
+
             f.write("\n--- PROTOCOLES PAR LABEL (top 3 labels) ---\n")
             for label, protos in results['protocols_by_label'].items():
                 f.write(f"{label}:\n")
                 for proto, count in sorted(protos.items(), key=lambda x: x[1], reverse=True)[:5]:
                     f.write(f"  {proto}: {count:,}\n")
-        
+
         # Analyse Physical Dataset
         write_section(f, "PARTIE 2: PHYSICAL DATASET")
         print(f"\nAnalyse des fichiers PHYSICAL ({len(files_physical)} fichiers)")
-        
+
         for idx, file in enumerate(files_physical, 1):
             print(f"\n[{idx}/{len(files_physical)}] {file}")
             write_section(f, f"Fichier: {file}")
-            
+
             results = analyze_file_complete(file, 'physical')
             all_results['physical'].append(results)
-            
+
             f.write("\n--- STATISTIQUES DE BASE ---\n")
             f.write(f"Nombre total de lignes: {results['total_rows']:,}\n")
             f.write(f"Nombre de capteurs: {len([c for c in results['columns'] if c not in ['Time', 'label', 'Label_n']])}\n\n")
-            
+
             f.write("Distribution des labels:\n")
             for label, count in sorted(results['label_distribution'].items(), key=lambda x: x[1], reverse=True):
                 percentage = (count / results['total_rows']) * 100 if results['total_rows'] > 0 else 0
                 f.write(f"  {label}: {count:,} ({percentage:.2f}%)\n")
-            
+
             f.write("\n--- ANALYSE TEMPORELLE ---\n")
             if results['has_time'] and results['time_range']:
                 f.write(f"Période: {results['time_range'][0]} à {results['time_range'][1]}\n")
             else:
                 f.write("Pas de données temporelles\n")
-            
+
             f.write("\n--- CAPTEURS ACTIFS PAR LABEL ---\n")
             for label, count in results['active_sensors_by_label'].items():
                 f.write(f"{label}: {count} capteurs actifs détectés\n")
-        
+
         # Synthèse globale
         write_section(f, "SYNTHÈSE GLOBALE")
-        
+
         total_rows_network = sum(r['total_rows'] for r in all_results['network'])
         total_rows_physical = sum(r['total_rows'] for r in all_results['physical'])
-        
+
         all_labels = set()
         for r in all_results['network'] + all_results['physical']:
             all_labels.update(r['label_distribution'].keys())
-        
+
         f.write(f"\nFichiers analysés:\n")
         f.write(f"  Network: {len(files_network)} fichiers, {total_rows_network:,} lignes\n")
         f.write(f"  Physical: {len(files_physical)} fichiers, {total_rows_physical:,} lignes\n")
         f.write(f"\nLabels uniques trouvés: {', '.join(sorted(all_labels))}\n")
-    
+
     print("\n" + "="*80)
     print(f"ANALYSE TERMINÉE".center(80))
     print(f"Résultats sauvegardés dans: {output_file}".center(80))
@@ -335,9 +335,9 @@ def write_analysis_to_file():
 if __name__ == "__main__":
     start_time = datetime.now()
     print(f"Démarrage: {start_time.strftime('%H:%M:%S')}")
-    
+
     write_analysis_to_file()
-    
+
     end_time = datetime.now()
     duration = (end_time - start_time).total_seconds()
     print(f"Durée totale: {duration:.1f} secondes ({duration/60:.1f} minutes)")

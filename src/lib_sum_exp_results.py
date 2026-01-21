@@ -29,7 +29,7 @@ def is_ok(path: str) -> bool:
         if not present:
             return False
     return True
-    
+
 
 def process_folder(path: str) -> dict[str, Any]:
     #

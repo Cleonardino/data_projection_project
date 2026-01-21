@@ -193,7 +193,7 @@ def train(
     if epochs_override is not None:
         print(f"Overriding epochs: {epochs_override}")
         training_config["epochs"] = epochs_override
-    
+
     if balancing_override is not None:
         print(f"Overriding balancing strategy: {balancing_override}")
         data_config["balancing"] = balancing_override
@@ -255,7 +255,7 @@ def train(
     # Calculate class weights if requested
     class_weights: dict[int, float] | None = None
     balancing_strategy = data_config.get("balancing", "none")
-    
+
     if balancing_strategy == "class_weights":
         from lib_data import BalancingStrategy
         print("\nComputing class weights for imbalanced data...")
@@ -324,13 +324,13 @@ def train(
     # Save sample-by-sample errors
     if exp_config.get("save_predictions", True):
         print("\nSaving sample-by-sample predictions...")
-        
+
         # Skip training set prediction saving if too large
         if len(dataset.X_train) <= 50000:
             save_sample_errors(exp_path, model, dataset, "train", dataset.X_train, dataset.y_train)
         else:
             print(f"  Skipping training set predictions (size {len(dataset.X_train)} > 50000)")
-            
+
         save_sample_errors(exp_path, model, dataset, "val", dataset.X_val, dataset.y_val)
         save_sample_errors(exp_path, model, dataset, "test", dataset.X_test, dataset.y_test)
 
