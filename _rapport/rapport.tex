@@ -128,6 +128,7 @@
 	\item \textbf{CSV} : Comma Separated Values
 	\item \textbf{FT Transformer} : Feature Tokenizer Transformer
 	\item \textbf{KNN} : K-Nearest Neighbors
+	\item \textbf{MITM} : Man-In-The-Middle
 	\item \textbf{MLP} : Multi-Layer Perceptron
 	\item \textbf{MCC} : Matthews Correlation Coefficient
 	\item \textbf{NLP} : Natural Language Processing
@@ -193,6 +194,8 @@ Il y a également des fichiers packet capture (PCAP) fournis pour les données r
 
 \subsection{Visualisation et analyse des données}
 
+% -------- I.1.1 Présentation générale des données --------
+
 \subsubsection{Présentation générale des données}
 
 Dans chaque fichier CSV, une ligne représente un ensemble de données collectées à un instant donné, tandis que les colonnes renvoient à différentes informations relevées ou différents dispositifs sur lesquels une mesure a été faite.
@@ -209,13 +212,12 @@ La répartition globale peut être observée dans la \hyperref[fig:data_repartit
 	\label{fig:global_data_repartition}
 \end{figure}
   
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.75\textwidth]{images/data_repartition.png}
-	\caption{Nombre d'entrées catégorisées \texttt{normal} et \texttt{attack} dans les jeux de données}
-	\label{fig:data_repartition}
-\end{figure}
+% \begin{figure}[H]
+% 	\centering
+% 	\includegraphics[width=0.75\textwidth]{images/data_repartition.png}
+% 	\caption{Nombre d'entrées catégorisées \texttt{normal} et \texttt{attack} dans les jeux de données}
+% 	\label{fig:data_repartition}
+% \end{figure}
 
 \begin{table}[h]
 	\centering
@@ -243,7 +245,15 @@ La répartition globale peut être observée dans la \hyperref[fig:data_repartit
 	\label{tab:labels_repartition}
 \end{table}
 
-\subsubsection{Présentation des données réseau}
+On constate qu'il y a beaucoup moins de données physiques que réseau (10 923 contre 29 829 204), ce qui est logique étant donné que les mesures physiques sont prises toutes les secondes, tandis que les relevés réseau sont probablement effectués à chaque paquet transmis (donc plusieurs par seconde).
+En effet, \cite{article_reference} indique que les données réseau ont été capturées à l'aide de \textit{Wireshark}, un outil d'analyse de paquets réseau, ce qui confirme cette hypothèse.
+
+% --- I.1.2 Présentation parallèle des données réseau et physiques ---
+
+\subsubsection{Présentation parallèle des données réseau et physiques}
+
+Les statistiques obtenues sur les données réseaux et physiques sont identiques à celle de \cite{article_reference}.
+Ainsi, on peut observer le nombre d'entrées pour chaque fichier de données dans les \hyperref[fig:net_number_entries]{Figure 2} et \hyperref[fig:phys_number_entries]{Figure 3}.
 
 \begin{figure}[H]
 	\centering
@@ -252,38 +262,6 @@ La répartition globale peut être observée dans la \hyperref[fig:data_repartit
 	\label{fig:net_number_entries}
 \end{figure}
 
-Au nombre de 14, les colonnes des données réseau sont listées dans la \hyperref[tab:network_features]{Table 4} (une traduction du tableau original présent dans \cite{article_reference}).
-
-\begin{table}[h!]
-	\centering
-	\resizebox{\textwidth}{!}{%
-	\begin{tabular}{|c|l|l|}
-		\hline
-		\textbf{N°} & \textbf{Nom} & \textbf{Description} \\ \hline
-		1  & Time & Date d'acquisition \\ \hline
-		2  & Src IP address & Adresse IP source \\ \hline
-		3  & Dst IP adress & Adresse IP destination \\ \hline
-		4  & Src MAC address & Adresse MAC source \\ \hline
-		5  & Dst MAC address & Adresse MAC destination \\ \hline
-		6  & Src Port & Port source \\ \hline
-		7  & Dst Port & Port destination \\ \hline
-		8  & Proto & Protocole \\ \hline
-		9  & TCP flags & CWR | ECN | URG | ACK | PSH | RST | SYN | FIN flags \\ \hline
-		10 & Payload size & Taille de la charge utile \\ \hline
-		11 & MODBUS code & Code de fonction MODBUS \\ \hline
-		12 & MODBUS value & Valeur réponse MODBUS \\ \hline
-		13 & num\_pkts\_src & Nombre de paquets de la même addresse source durant les 2 dernières secondes \\ \hline
-		14 & num\_pkts\_dst & Nombre de paquets de la même addresse destination durant les 2 dernières secondes \\ \hline
-	\end{tabular}
-	}
-	\caption{Caractéristiques des données réseau}
-	\label{tab:network_features}
-\end{table}
-
-\subsubsection{Présentation des données physiques}
-
-En s'appuyant sur les informations fournies par \cite{article_reference}, on peut dénombrer les nombre de lignes pour chaque jeu de données physique comme présenté dans la \hyperref[fig:phys_number_entries]{Figure 2}.
-
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.75\textwidth]{images/article/nb_samples_physical.png}
@@ -291,7 +269,9 @@ En s'appuyant sur les informations fournies par \cite{article_reference}, on peu
 	\label{fig:phys_number_entries}
 \end{figure}
 
-On constate que le fichier \texttt{phy\_norm.csv} contient un total de \textbf{3 429} entrées, tandis que les fichiers d'attaques contiennent entre 1 2000 et 2 421 entrées chacun, et sont donc plus petits lorsque pris indépendamment.
+Il manque cependant les informations sur les fichiers \texttt{attack\_4.csv} et \texttt{dataset\_att\_4.csv} : on y a relevé respectivement \textbf{5 522 490} et \textbf{1 717} entrées, ce qui reste dans la même ordre de grandeur que les autres fichiers d'attaques pour chaque type.
+
+Par ailleurs, on constate dans les deux cas que comparé au fichier dit "normal", les fichiers d'attaques sont plus petits lorsque pris indépendamment.
 Cela est expliqué dans \cite{article_reference} par le fait que les périodes d'attaques sont plus courtes que la périodes normale qui a été relevée :
 
 \begin{table}[h!]
@@ -307,8 +287,37 @@ Cela est expliqué dans \cite{article_reference} par le fait que les périodes d
 	\label{tab:quote}
 \end{table}
 
-Les mesures physiques sont reportées toutes les secondes et concernent des paramètres tels que l'état des pompes, les valeurs de différents capteurs, etc.
-En tout, il y a 41 caractéristiques, présentées dans la \hyperref[tab:physical_features]{Table 3} (une traduction du tableau original présent dans \cite{article_reference}).
+Le contenu des différentes colonnes est également détaillé dans \cite{article_reference}.
+Les données récupérées via \textit{Wireshark} en comportent \textbf{14}, listées dans la \hyperref[tab:network_features]{Table 3} (une traduction du tableau original présent dans \cite{article_reference}).\\
+
+\begin{table}[h!]
+	\centering
+	\resizebox{\textwidth}{!}{%
+	\begin{tabular}{|c|l|l|}
+		\hline
+		\textbf{N°} & \textbf{Nom} & \textbf{Description} \\ \hline
+		1  & \texttt{Time} & Date d'acquisition \\ \hline
+		2  & \texttt{Src IP address} & Adresse IP source \\ \hline
+		3  & \texttt{Dst IP adress} & Adresse IP destination \\ \hline
+		4  & \texttt{Src MAC address} & Adresse MAC source \\ \hline
+		5  & \texttt{Dst MAC address} & Adresse MAC destination \\ \hline
+		6  & \texttt{Src Port} & Port source \\ \hline
+		7  & \texttt{Dst Port} & Port destination \\ \hline
+		8  & \texttt{Proto} & Protocole \\ \hline
+		9  & \texttt{TCP flags} & CWR | ECN | URG | ACK | PSH | RST | SYN | FIN flags \\ \hline
+		10 & \texttt{Payload size} & Taille de la charge utile \\ \hline
+		11 & \texttt{MODBUS code} & Code de fonction MODBUS \\ \hline
+		12 & \texttt{MODBUS value} & Valeur réponse MODBUS \\ \hline
+		13 & \texttt{num\_pkts\_src} & Nombre de paquets de la même addresse source durant les 2 dernières secondes \\ \hline
+		14 & \texttt{num\_pkts\_dst} & Nombre de paquets de la même addresse destination durant les 2 dernières secondes \\ \hline
+	\end{tabular}
+	}
+	\caption{Caractéristiques des données réseau}
+	\label{tab:network_features}
+\end{table}
+
+Les mesures physiques, quant à elles, concernent des paramètres tels que l'état des pompes, les valeurs de différents capteurs, etc.
+En tout, il y en a \textbf{41}, présentées dans la \hyperref[tab:physical_features]{Table 4} (également une traduction du tableau original présent dans \cite{article_reference}).\\
 
 \begin{table}[h!]
 	\centering
@@ -352,7 +361,7 @@ L'ensemble des données est soumis a un pré-traitement général avant d'être 
 \subsection{Algorithmes utilisés}
 
 	Au total, 7 algorithmes différents ont été implémentés pour ce projet.
-	Pour trois d'entre eux, deux tailles de modèles ont été testées : \texttt{small} et \texttt{medium} ; les autres n'ont été testés qu'en taille \texttt{small}.
+	Pour quatre d'entre eux, trois tailles de modèles ont été testées : \texttt{small}, \texttt{medium} et \texttt{large} ; les autres n'ont été testés qu'en taille \texttt{small} et \texttt{medium}.
 	Cela sera expliqué plus en détail dans la section \hyperref[sec:hyperparameters]{3.3 Hyperparamètres et résultats}.
 
 Parmi les modèles demandés, les suivants ont été implémentés :
