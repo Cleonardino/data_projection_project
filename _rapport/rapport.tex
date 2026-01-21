@@ -344,6 +344,20 @@ En tout, il y en a \textbf{41}, présentées dans la \hyperref[tab:physical_feat
 	\label{tab:physical_features}
 \end{table}
 
+\subsubsection{Valeurs manquantes}
+\label{sec:missing_values}
+
+Bien entendu, une vérification a été faite pour détecter la présence de valeurs manquantes dans les données.
+En l'occurence, les données physiques ne présentent pas de valeurs manquantes.
+Concernant les données réseau, elles sont présentées dans la \hyperref[fig:missing_values]{Figure 6} :
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{images/missing_values.png}
+	\caption{Pourcentage de valeurs manquantes par colonne dans les données réseau}
+	\label{fig:missing_values}
+\end{figure}
+
 % ------------ I.2 Pré-traitement des données -------------
 
 \subsection{Pré-traitement}
@@ -355,6 +369,7 @@ L'ensemble des données est soumis a un pré-traitement général avant d'être 
 	\item Les données brutes (physique et réseau) sont chargées depuis les différents fichiers CSV.
 	\item Les jeux de données étant particulièrement lourds, ils sont sous-échantillonnés pour permettre de travailler sur des sous-ensembles réduits.
 	\item Les caractéristiques et les labels sont extraits.
+	\item Les valeurs manquantes (cf. \hyperref[sec:missing_values]{1.1.3 Valeurs manquantes}) sont remplacés par des 0.
 	\item Les labels sont encodés avec \texttt{LabelEncoder} de \texttt{scikit-learn} \cite{scikit-learn}, ce qui permet de convertir les étiquettes textuelles en valeurs numériques.
 	\item Les données sont stratifiées en ensembles d'entraînement, de validation et de test avec \texttt{train\_test\_split} de \texttt{scikit-learn}, en utilisant les options de \texttt{stratify} et \texttt{shuffle} pour garantir une répartition équilibrée des classes dans chaque ensemble.
 		  Le ratio utilisé est de 70\% pour l'ensemble d'entraînement, 15\% pour l'ensemble de validation et 15\% pour l'ensemble de test.
