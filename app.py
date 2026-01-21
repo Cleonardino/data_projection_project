@@ -1,8 +1,6 @@
 import streamlit as st
-import numpy as np
-import pandas as pd
-from src.summaries import load_experiments
-from app.modeldataclass import ModelData
+from src.summaries import load_experiments, get_all_data_for_streamlit
+from app.model_data_class import ModelData
 
 
 model_data: list[ModelData] = []
