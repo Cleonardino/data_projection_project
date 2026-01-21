@@ -19,7 +19,7 @@ for key in experiments:
 
 model_data.sort(key=lambda md : md.get_model_title())
 
-model_pages: list = []
+model_pages: list = [st.Page("app/models_overview.py", title="Models Overview", icon=":material/summarize:")]
 
 for model in model_data:
     model_pages.append(st.Page(
