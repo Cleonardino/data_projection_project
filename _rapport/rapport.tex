@@ -161,6 +161,14 @@ Il y a également des fichiers packet capture (PCAP) fournis pour les données r
 
 Dans chaque fichier CSV, une ligne représente un ensemble de données collectées à un instant donné, tandis que les colonnes renvoient à différentes informations relevées ou différents dispositifs sur lesquels une mesure a été faite.
 Chaque ligne est associée à une étiquette (\texttt{label}) indiquant si les données correspondent à un état normal (étiquette \texttt{normal}) ou à une anomalie (étiquettes \texttt{DoS}, \texttt{MITM}, \texttt{scan} pour les données réseau et \texttt{physical fault} pour les données physiques).
+La répartition globale peut être observée dans la \hyperref[fig:data_repartition]{Figure 1}.\\
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.75\textwidth]{images/data_repartition.png}
+	\caption{Nombre d'entrées catégorisées \texttt{normal} et \texttt{attack} dans les jeux de données}
+	\label{fig:data_repartition}
+\end{figure}
 
 \myparagraph{Données physiques}
 
@@ -266,20 +274,24 @@ L'ensemble des données est soumis a un pré-traitement général avant d'être 
 
 \subsection{Algorithmes utilisés}
 
+	Au total, 7 algorithmes différents ont été implémentés pour ce projet.
+	Pour trois d'entre eux, deux tailles de modèles ont été testées : \texttt{small} et \texttt{medium} ; les autres n'ont été testés qu'en taille \texttt{small}.
+	Cela sera expliqué plus en détail dans la section \hyperref[sec:hyperparameters]{3.3 Hyperparamètres et résultats}.
+
 Parmi les modèles demandés, les suivants ont été implémentés :
 \begin{itemize}
-    \item KNN (en \texttt{small} et \texttt{medium})
-    \item Random Forest (en \texttt{small} et \texttt{medium})
+    \item KNN (en \texttt{small}, \texttt{medium} et \texttt{large})
+    \item Random Forest (en \texttt{small},  \texttt{medium} et \texttt{large})
     \item XGBoost (en \texttt{small} et \texttt{medium})
-    \item MLP (en \texttt{small})
+    \item MLP (en \texttt{small}, \texttt{medium} et \texttt{large})
 \end{itemize}
 
-Le modèle CART n'a pas été implémenté, mais a été remplacé par des modèles basés sur des architectures de transformers adaptées aux données tabulaires :
+Le modèle CART n'a pas été implémenté, mais a été remplacé par les trois modèles ci-dessous :
 
 \begin{itemize}
-	\item Tab Transformer (en \texttt{small}) : TO COMPLETE
-	\item FT Transformer (en \texttt{small}) : TO COMPLETE
-	\item MLP avec attention (en \texttt{small}) : même architecture que le MLP classique, mais avec un mécanisme d'attention ajouté.
+	\item Tab Transformer (en \texttt{small} et \texttt{medium}) : modèle basé sur des transformeurs appliqués aux données tabulaires, utilisant des embeddings pour les variables catégorielles et un mécanisme d’auto-attention pour capturer les interactions entre les caractéristiques.
+	\item FT Transformer (en \texttt{small} et \texttt{medium}) : variante optimisée du transformeur pour données tabulaires, combinant embeddings de caractéristiques et couches d’auto-attention avec une tête de prédiction dédiée, offrant de bonnes performances tout en restant peu coûteuse en calcul.
+	\item MLP avec attention (en \texttt{small}, en \texttt{medium} et \texttt{large}) : même architecture que le MLP classique, mais avec un mécanisme d'attention ajouté.
 \end{itemize}
 
 \subsection{Organisation des entraînements}
@@ -297,9 +309,10 @@ Les résultats de chaque entraînement sont enregistrés de manière structurée
 Le détail des résultats enregistrés est présenté dans la section suivante.
 
 \subsection{Hyperparamères et résultats}
+\label{sec:hyperparameters}
 
 En termes d'hyperparamètres, il n'y en a qu'un seul qui a été vraiment manipulé : la taille des modèles utilisés.
-En effet, pour chaque type de modèle implémenté, deux tailles de modèles ont été testées : \texttt{small} et \texttt{medium}.
+En effet, pour chaque type de modèle implémenté, deux ou trois tailles de modèles ont été testées : \texttt{small}, \texttt{medium} et parfois \texttt{large}.
 La différence principale entre elles réside dans le nombre de couches et de neurones utilisés.
 Par exemple, pour le MLP, le modèle \texttt{small} utilise 2 couches cachées avec 32 et 64 neurones, tandis que le modèle \texttt{medium} utilise 3 couches cachées de 64, 128 et 256 neurones.
 
