@@ -10,33 +10,32 @@ st.write("The models presented are the ones which were kept due to sufficient me
 
 st.divider()
 
-# ============================================================================
-# LEADERBOARD SECTION
-# ============================================================================
-st.header("🏆 Models Leaderboard")
+st.header("Models Leaderboard")
+st.write("To sort by a particular metric, click on the corresponding column's name")
 
 # Load experiments
 experiments = load_experiments()
 
 # Extract model data for leaderboard
-leaderboard_data = []
+network_data = []
+physical_data = []
 
 for model_name, model_info in experiments.items():
     # Parse model name to extract readable parts
     parts = model_name.split('_')
     if len(parts) >= 3:
-        date = parts[0]  # 2026-01-14
-        model_type = '_'.join(parts[3:])  # network_small_xgboost
+        date = parts[0]
+        model_real_name = '_'.join(parts[2:])
     else:
         date = "Unknown"
-        model_type = model_name
+        model_real_name = model_name
     
-    # Extract test metrics (most important for comparison)
+    # Extract test metrics
     test_metrics = model_info["metrics"]["metrics"]["test"]
     training_info = model_info["metrics"]["training"]
     
-    leaderboard_data.append({
-        'Model Name': model_type,
+    model_data = {
+        'Model Name': model_real_name,
         'Date': date,
         'Test Accuracy': test_metrics['accuracy'],
         'Test Balanced Accuracy': test_metrics['balanced_accuracy'],
@@ -51,67 +50,36 @@ for model_name, model_info in experiments.items():
         'Total Epochs': training_info['total_epochs'],
         'Best Epoch': training_info['best_epoch'],
         'Training Time (s)': training_info['training_time_seconds']
-    })
+    }
+    
+    # Separate based on model type
+    if model_real_name.startswith('network'):
+        network_data.append(model_data)
+    elif model_real_name.startswith('physical'):
+        physical_data.append(model_data)
 
-# Create DataFrame
-df_leaderboard = pd.DataFrame(leaderboard_data)
+# Create DataFrames
+df_network = pd.DataFrame(network_data)
+df_physical = pd.DataFrame(physical_data)
 
-# Metric selection
-col1, col2 = st.columns([2, 1])
+# Display in tabs
+tab1, tab2 = st.tabs(["Network Models", "Physical Models"])
 
-with col1:
-    sort_metric = st.selectbox(
-        "Select metric to sort by",
-        options=[
-            'Test Accuracy',
-            'Test Balanced Accuracy',
-            'Test F1 (Macro)',
-            'Test F1 (Weighted)',
-            'Test Precision (Macro)',
-            'Test Recall (Macro)',
-            'Test MCC',
-            'Val Accuracy',
-            'Val F1 (Macro)',
-            'Train Accuracy',
-            'Training Time (s)'
-        ],
-        index=0
-    )
+with tab1:
+    if len(df_network) > 0:
+        st.dataframe(df_network, use_container_width=True, height=500)
+    else:
+        st.info("No network models found")
 
-with col2:
-    sort_order = st.radio(
-        "Sort order",
-        options=['Descending', 'Ascending'],
-        index=0,
-        horizontal=True
-    )
-
-# Sort the dataframe
-ascending = sort_order == 'Ascending'
-# For training time, lower is better, so invert the logic
-if sort_metric == 'Training Time (s)':
-    ascending = not ascending
-
-df_sorted = df_leaderboard.sort_values(by=sort_metric, ascending=ascending)
-
-# Display the dataframe
-st.dataframe(df_sorted, use_container_width=True, height=500)
-
-# Download button
-csv = df_sorted.to_csv(index=False)
-st.download_button(
-    label="📥 Download as CSV",
-    data=csv,
-    file_name=f"models_leaderboard_{sort_metric.replace(' ', '_')}.csv",
-    mime="text/csv"
-)
+with tab2:
+    if len(df_physical) > 0:
+        st.dataframe(df_physical, use_container_width=True, height=500)
+    else:
+        st.info("No physical models found")
 
 st.divider()
 
-# ============================================================================
-# CORRELATION HEATMAPS
-# ============================================================================
-st.header("📈 Feature Correlation Analysis")
+st.header("Feature Correlation Analysis")
 
 st.header("Physical Model Correlation")
 st.image("results_analysis/physical/correlation/correlation_heatmap.png")
