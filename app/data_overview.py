@@ -61,7 +61,6 @@ fig = px.bar(
     y='Count',
     title='All Label Distribution'
 )
-fig.update_layout(xaxis_tickangle=-45, height=400)
 st.plotly_chart(fig, use_container_width=True)
 
 st.dataframe(df_labels_combined, use_container_width=True)
@@ -78,7 +77,6 @@ fig = px.bar(
     y='Count',
     title='Network Label Distribution'
 )
-fig.update_layout(xaxis_tickangle=-45, height=400)
 st.plotly_chart(fig, use_container_width=True)
 
 st.dataframe(df_labels_network, use_container_width=True)
@@ -95,39 +93,32 @@ fig = px.bar(
     y='Count',
     title='Physical Label Distribution'
 )
-fig.update_layout(xaxis_tickangle=-45, height=400)
 st.plotly_chart(fig, use_container_width=True)
 
 st.dataframe(df_labels_physical, use_container_width=True)
 
 st.divider()
 
-st.header("🔌 Protocol Analysis")
+st.header("Protocol Analysis")
 
-col1, col2 = st.columns([2, 1])
+protocols = data['protocols']
+df_protocols = pd.DataFrame(
+    protocols.items(),
+    columns=['Protocol', 'Count']
+).sort_values('Count', ascending=False)
 
-with col1:
-    protocols = data['protocols']
-    df_protocols = pd.DataFrame(
-        protocols.items(),
-        columns=['Protocol', 'Count']
-    ).sort_values('Count', ascending=False)
-    
-    fig = px.bar(
-        df_protocols.head(15),
-        x='Protocol',
-        y='Count',
-        title='Top 15 Protocols',
-        color='Count',
-        color_continuous_scale='Plasma'
-    )
-    fig.update_layout(xaxis_tickangle=-45, height=400)
-    st.plotly_chart(fig, use_container_width=True)
+fig = px.bar(
+    df_protocols,
+    x='Protocol',
+    y='Count',
+    title='Protocols counts'
+)
+st.plotly_chart(fig, use_container_width=True)
 
-with col2:
-    st.subheader("Top 10 Protocols")
-    for protocol, count in data['top_protocols']:
-        st.metric(protocol, f"{count:,}")
+
+st.subheader("Top 10 Protocols")
+for protocol, count in data['top_protocols']:
+    st.write(f"protocol  : {count:,}")
 
 # Protocols by attack type
 st.subheader("Protocols by Attack Type")
