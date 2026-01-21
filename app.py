@@ -12,10 +12,95 @@ class ModelData:
     
     def page_function(self):
         st.title(self.title)
-        st.header("Training history")
-        st.write(self.train_history)
-        st.header("Metrics")
-        st.write(self.metrics)
+        
+        # Training Overview
+        st.header("📊 Training Overview")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Total Epochs", self.metrics["training"]["total_epochs"])
+        with col2:
+            st.metric("Best Epoch", self.metrics["training"]["best_epoch"])
+        with col3:
+            st.metric("Training Time", f"{self.metrics['training']['training_time_seconds']:.2f}s")
+        
+        # Training History
+        st.header("📈 Training History")
+        
+        # Create DataFrame from training history
+        history_df = pd.DataFrame({
+            'Epoch': self.train_history['epochs'],
+            'Train Loss': self.train_history['train_loss'],
+            'Val Loss': self.train_history['val_loss'],
+            'Train Accuracy': self.train_history['train_accuracy'],
+            'Val Accuracy': self.train_history['val_accuracy']
+        })
+        
+        # Plot Loss
+        st.subheader("Loss")
+        loss_df = history_df[['Epoch', 'Train Loss', 'Val Loss']].set_index('Epoch')
+        st.line_chart(loss_df)
+        
+        # Plot Accuracy
+        st.subheader("Accuracy")
+        acc_df = history_df[['Epoch', 'Train Accuracy', 'Val Accuracy']].set_index('Epoch')
+        st.line_chart(acc_df)
+        
+        # Show table with option to expand
+        with st.expander("View Training History Table"):
+            st.dataframe(history_df, use_container_width=True)
+        
+        # Metrics Section
+        st.header("🎯 Model Metrics")
+        
+        # Create tabs for train/val/test
+        tab1, tab2, tab3 = st.tabs(["Train", "Validation", "Test"])
+        
+        for tab, dataset in zip([tab1, tab2, tab3], ['train', 'val', 'test']):
+            with tab:
+                metrics_data = self.metrics['metrics'][dataset]
+                
+                # Overall metrics
+                st.subheader("Overall Metrics")
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    st.metric("Accuracy", f"{metrics_data['accuracy']:.4f}")
+                with col2:
+                    st.metric("Balanced Accuracy", f"{metrics_data['balanced_accuracy']:.4f}")
+                with col3:
+                    st.metric("F1 (Macro)", f"{metrics_data['f1_macro']:.4f}")
+                with col4:
+                    st.metric("MCC", f"{metrics_data['mcc']:.4f}")
+                
+                # Detailed metrics table
+                st.subheader("Detailed Metrics")
+                detailed_metrics_df = pd.DataFrame({
+                    'Precision (Macro)': [metrics_data['precision_macro']],
+                    'Recall (Macro)': [metrics_data['recall_macro']],
+                    'Precision (Weighted)': [metrics_data['precision_weighted']],
+                    'Recall (Weighted)': [metrics_data['recall_weighted']],
+                    'F1 (Weighted)': [metrics_data['f1_weighted']]
+                })
+                st.dataframe(detailed_metrics_df, use_container_width=True)
+                
+                # Per-class metrics
+                st.subheader("Per-Class Metrics")
+                num_classes = len(metrics_data['per_class_precision'])
+                per_class_df = pd.DataFrame({
+                    'Class': [f'Class {i}' for i in range(num_classes)],
+                    'Precision': metrics_data['per_class_precision'],
+                    'Recall': metrics_data['per_class_recall'],
+                    'F1-Score': metrics_data['per_class_f1']
+                })
+                st.dataframe(per_class_df, use_container_width=True)
+                
+                # Confusion Matrix
+                st.subheader("Confusion Matrix")
+                cm_df = pd.DataFrame(
+                    metrics_data['confusion_matrix'],
+                    columns=[f'Pred {i}' for i in range(num_classes)],
+                    index=[f'True {i}' for i in range(num_classes)]
+                )
+                st.dataframe(cm_df, use_container_width=True)
 
 model_data : list[ModelData] = []
 
