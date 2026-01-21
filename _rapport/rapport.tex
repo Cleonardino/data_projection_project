@@ -303,23 +303,17 @@ En effet, pour chaque type de modèle implémenté, deux tailles de modèles ont
 La différence principale entre elles réside dans le nombre de couches et de neurones utilisés.
 Par exemple, pour le MLP, le modèle \texttt{small} utilise 2 couches cachées avec 32 et 64 neurones, tandis que le modèle \texttt{medium} utilise 3 couches cachées de 64, 128 et 256 neurones.
 
-% Brouillon
-BROUILLON : Pour les hyperparamètres, pour l'instant, ont juste été testés 2 tailles de modèles (small et medium) pour chaque dataset, et utilisés des bons learning rate et autres hyperparamètres par défaut, et de bons résultats ont été obtenus.
+Concernant les résultats, sont enregistrés :
 
-
-% ============= BROUILLON =============
 \begin{itemize}
-    \item Sont enregistrés pour chaque entraînement:
-	\begin{itemize}
-		\item les poids du meilleurs modèle
-		\item la configuration utilisée (au cas ou les configurations changent)
-		\item Les métriques sur le jeu de données d'entraînement, validation et test du meilleur modèle.
-		\item Les erreurs sur le jeu de données d'entraînement, validation et test du meilleur modèle.
-		\item Les courbes de loss et d'accuracy sur le jeu de donnée d'entraînement et de validation.
-	\end{itemize}
-	\item Un rapport récapitulatif de tous les entraînements est ensuite généré avec le script \texttt{src/analyze\_results.py} séparé pour le physical et le network datasets.
+	\item les poids du meilleur modèle,
+	\item la configuration utilisée (au cas où les configurations changent),
+	\item Les métriques sur les jeux de données d'entraînement, validation et test du meilleur modèle,
+	\item Les erreurs sur les jeux de données d'entraînement, validation et test du meilleur modèle,
+	\item Les courbes de loss et d'accuracy sur les jeux de donnée d'entraînement et de validation.
 \end{itemize}
-% ================= FIN BROUILLON =============
+
+Deux rapports récapitulatifs de tous les entraînements sont ensuite générés avec le script \texttt{src/analyze\_results.py}, un pour les jeux de données physiques \texttt{results\_analysi} \texttt{s/physical/report.md} et un pour les jeux de données réseaux \texttt{results\_analysis/netwo} \texttt{rk/report.md}.
 
 \section{Évaluation et comparaison avec les données de référence}
 
