@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
 class ModelData:
     def __init__(self, title: str, icon: str, metrics, train_history):
@@ -7,6 +8,16 @@ class ModelData:
         self.icon = icon
         self.metrics = metrics
         self.train_history = train_history
+        # Define class labels
+        self.class_labels = {
+            0: 'Normal',
+            1: 'Anomaly',
+            2: 'MITM',
+            3: 'Physical Fault',
+            4: 'Scan',
+            5: 'DoS',
+            6: 'Normal'
+        }
     
     def get_model_title(self):
         parts = self.title.split('_')
@@ -114,7 +125,7 @@ class ModelData:
                 st.subheader("Class Metrics")
                 num_classes = len(metrics_data['per_class_precision'])
                 per_class_df = pd.DataFrame({
-                    'Class': [f'Class {i}' for i in range(num_classes)],
+                    'Class': [self.class_labels.get(i, f'Class {i}') for i in range(num_classes)],
                     'Precision': metrics_data['per_class_precision'],
                     'Recall': metrics_data['per_class_recall'],
                     'F1-Score': metrics_data['per_class_f1']
@@ -124,7 +135,25 @@ class ModelData:
                 st.subheader("Confusion Matrix")
                 cm_df = pd.DataFrame(
                     metrics_data['confusion_matrix'],
-                    columns=[f'Pred {i}' for i in range(num_classes)],
-                    index=[f'True {i}' for i in range(num_classes)]
+                    columns=[self.class_labels.get(i, f'Pred {i}') for i in range(num_classes)],
+                    index=[self.class_labels.get(i, f'True {i}') for i in range(num_classes)]
                 )
-                st.dataframe(cm_df, use_container_width=True)
+                
+                # Create colored heatmap
+                fig = px.imshow(
+                    metrics_data['confusion_matrix'],
+                    labels=dict(x="Predicted Class", y="True Class", color="Count"),
+                    x=[self.class_labels.get(i, f'Class {i}') for i in range(num_classes)],
+                    y=[self.class_labels.get(i, f'Class {i}') for i in range(num_classes)],
+                    color_continuous_scale='Blues',
+                    text_auto=True,
+                    aspect='auto'
+                )
+                fig.update_layout(
+                    width=600,
+                    height=600
+                )
+                st.plotly_chart(fig, use_container_width=True)
+                
+                with st.expander("View as Table"):
+                    st.dataframe(cm_df, use_container_width=True)
