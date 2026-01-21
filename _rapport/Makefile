@@ -14,7 +14,8 @@ all: force
 # Compilation forcée
 # =====================
 force:
-	@echo "=== Removing old PDF"
+	@echo "=== Removing old files"
+	@rm -f *.aux *.bbl *.bcf *.blg *.log *.nlo *.toc *.out *.lof *.lot *.fls *run.xml *.fdb_latexmk *.synctex.gz
 	@rm -f $(FILE).pdf
 	@echo "=== LaTeX Compilation (1/3)"
 	@$(LATEX) $(FILE).tex > /dev/null
