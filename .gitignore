@@ -24,3 +24,5 @@ _rapport/*.log
 _rapport/*.nlo
 _rapport/*.out
 _rapport/*.toc
+
+.streamlit
