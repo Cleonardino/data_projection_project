@@ -13,15 +13,12 @@ st.divider()
 st.header("Models Leaderboard")
 st.write("To sort by a particular metric, click on the corresponding column's name")
 
-# Load experiments
 experiments = load_experiments()
 
-# Extract model data for leaderboard
 network_data = []
 physical_data = []
 
 for model_name, model_info in experiments.items():
-    # Parse model name to extract readable parts
     parts = model_name.split('_')
     if len(parts) >= 3:
         date = parts[0]
@@ -30,7 +27,7 @@ for model_name, model_info in experiments.items():
         date = "Unknown"
         model_real_name = model_name
     
-    # Extract test metrics
+    # Get metrics
     test_metrics = model_info["metrics"]["metrics"]["test"]
     training_info = model_info["metrics"]["training"]
     
@@ -52,28 +49,26 @@ for model_name, model_info in experiments.items():
         'Training Time (s)': training_info['training_time_seconds']
     }
     
-    # Separate based on model type
+    # Split on type
     if model_real_name.startswith('network'):
         network_data.append(model_data)
     elif model_real_name.startswith('physical'):
         physical_data.append(model_data)
 
-# Create DataFrames
 df_network = pd.DataFrame(network_data)
 df_physical = pd.DataFrame(physical_data)
 
-# Display in tabs
 tab1, tab2 = st.tabs(["Network Models", "Physical Models"])
 
 with tab1:
     if len(df_network) > 0:
-        st.dataframe(df_network, use_container_width=True, height=500)
+        st.dataframe(df_network, use_container_width=True)
     else:
         st.info("No network models found")
 
 with tab2:
     if len(df_physical) > 0:
-        st.dataframe(df_physical, use_container_width=True, height=500)
+        st.dataframe(df_physical, use_container_width=True)
     else:
         st.info("No physical models found")
 
