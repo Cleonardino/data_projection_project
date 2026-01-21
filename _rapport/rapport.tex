@@ -465,6 +465,8 @@ On y trouve :
 
 \subsubsection{Pour le jeu de données réseau}
 
+L'évaluation sur le jeu de données réseau (Table \ref{tab:network_results}) montre une dispersion des performances beaucoup plus marquée que sur les données physiques. Avec plusieurs centaines de millier d'entrées, la capacité de généralisation des modèles est mise à l'épreuve. On observe que les modèles "small", bien que plus simples, dominent ici le classement. Cela suggère que l'augmentation de la complexité des modèles (tailles "medium" et "large") sans un réglage extrêmement fin des hyperparamètres ou une augmentation proportionnelle du temps d'entraînement mène rapidement à une dégradation des performances sur ce type de trafic.
+
 \begin{table}[H]
     \centering
 	\resizebox{\textwidth}{!}{%
@@ -500,6 +502,10 @@ On y trouve :
 	\caption{Comparaison des expériences sur le jeu de données network}
     \label{tab:network_results}
 \end{table}
+
+En comparant nos résultats avec ceux de la Table \ref{tab:article_res_net}, on note une tendance intéressante : nos meilleurs modèles (\texttt{small\_random\_forest} et \texttt{small\_knn}) obtiennent une exactitude (accuracy) supérieure à celle rapportée dans l'article (0,87-0,89 contre 0,75-0,77). De même, nos F1-scores macro sont nettement plus élevés (0,86 contre 0,54).
+
+Cette supériorité peut s'expliquer par notre stratégie de pré-traitement incluant le sous-échantillonnage et la normalisation, ou par une meilleure adaptation des hyperparamètres de nos modèles "small". Toutefois, il est important de noter que le temps de calcul des modèles complexes comme le \texttt{large\_mlp} ou le \texttt{ft\_transformer} explose sur ce dataset, sans pour autant garantir de meilleurs résultats, ce qui valide l'efficacité des méthodes arborescentes et des voisins les plus proches pour la détection d'intrusions réseau.
 
 \begin{table}[H]
 	\centering
