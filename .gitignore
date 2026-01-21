@@ -2,7 +2,7 @@ data
 dataset
 venv
 .venv
-_rapport/_minted-rapport
+
 *.pyc
 __pycache__
 *log*
@@ -13,3 +13,12 @@ cached_datasets
 *.pkl
 *.ptl
 *.csv
+
+_rapport/_minted-rapport
+_rapport/*.aux
+_rapport/*.bcf
+_rapport/*.lof
+_rapport/*.log
+_rapport/*.nlo
+_rapport/*.out
+_rapport/*.toc
