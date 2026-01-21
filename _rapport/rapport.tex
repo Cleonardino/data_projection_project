@@ -35,6 +35,7 @@
 % Graphiques et TikZ
 %--------------------------------------------------
 \usepackage{tikz}
+\usepackage{pgf-pie}
 
 \newcommand{\verticalquote}[1]{%
     \begin{tikzpicture}[remember picture, overlay]
@@ -197,6 +198,17 @@ Il y a également des fichiers packet capture (PCAP) fournis pour les données r
 Dans chaque fichier CSV, une ligne représente un ensemble de données collectées à un instant donné, tandis que les colonnes renvoient à différentes informations relevées ou différents dispositifs sur lesquels une mesure a été faite.
 Chaque ligne est associée à une étiquette (\texttt{label}) indiquant si les données correspondent à un état normal (étiquette \texttt{normal} ou altérée en \texttt{nomal}) ou à une anomalie (étiquettes \texttt{anomaly}, \texttt{DoS}, \texttt{MITM}, \texttt{scan} ou \texttt{physical fault}).
 La répartition globale peut être observée dans la \hyperref[fig:data_repartition]{Figure 1}, tandis que le détail de la répartition des étiquettes peut être consulté dans la \hyperref[tab:labels_repartition]{Table 2}.\\
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}
+		\pie[text=legend, rotate=90, before number=, after number=, color={green!30, red!30}]
+			{68.6/Normal, 31.4/Anomalie}
+	\end{tikzpicture}
+	\caption{Répartition globale des données entre normales et anormales}
+	\label{fig:global_data_repartition}
+\end{figure}
+  
 
 \begin{figure}[H]
 	\centering
