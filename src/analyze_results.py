@@ -310,7 +310,7 @@ def compute_model_correlation(errors: dict[str, pd.DataFrame]) -> pd.DataFrame:
                 error_matrix[i, sample_idx] = 1
 
     # Filter out identical duplicates: for same model name AND identical error vector, keep only most recent
-    keep_indices = []
+    # keep_indices = []
 
     # 1. Parse metadata for all experiments
     exp_metadata = []
@@ -441,7 +441,7 @@ def compute_model_correlation(errors: dict[str, pd.DataFrame]) -> pd.DataFrame:
             p["short"] = p["clean"]
 
     # Check for duplicates
-    name_counts = defaultdict(int)
+    name_counts : defaultdict[str, int] = defaultdict(int)
     for p in parsed_names:
         name_counts[p["short"]] += 1
 
