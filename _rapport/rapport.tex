@@ -463,10 +463,9 @@ On y trouve :
 
 % --------------- III.1 Physical ---------------
 
-D'après les résultats présentés dans la \hyperref[tab:physical_small_results]{Table 5}, le modèle \texttt{small\_knn} obtient les meilleures performances sur le jeu de données \texttt{physical\_small}, avec une précision de \textbf{97,74\%}, un F1-macro de \textbf{0,8007}, une précision équilibrée de \textbf{0,8235} et un MCC de \textbf{0,9402}.
-Le temps d'entraînement est également très faible (quasi-instantané), ce qui en fait un choix efficace pour ce type de données.
-À l'inverse, le modèle \texttt{small\_random\_forest} affiche les performances les plus faibles, ce qui peut s'expliquer par une répartition des classses TO COMPLETE.
-
+D'après les résultats présentés dans la \hyperref[tab:physical_results]{Table 5}, le modèle \texttt{large\_xgboost} obtient les meilleures performances sur le jeu de données \texttt{physical}, avec une précision de \textbf{98,60\%}, un F1-macro de \textbf{0,8179}, une précision équilibrée de \textbf{0,8174} et un MCC de \textbf{0,9609}.
+Le temps d'entraînement est également très faible (quelques secondes), ce qui en fait un choix efficace pour ce type de données.
+À l'inverse, les modèles \texttt{small\_random\_forest} ou \texttt{large\_ft\_transformer} affichent les performances les plus faibles, ce qui peut s'expliquer par un manque de capacité de généralisation pour le premier (sous-apprentissage dû à une structure trop restreinte) et une difficulté de convergence ou un sur-ajustement (overfitting) pour le second, les architectures de type Transformer étant souvent plus complexes à optimiser sur des données tabulaires de taille réduite.
 
 \begin{table}[H]
     \centering
@@ -509,8 +508,8 @@ Le temps d'entraînement est également très faible (quasi-instantané), ce qui
     \label{tab:physical_results}
 \end{table}
 
-En comparant les résultats obtenus avec ceux de l'article de référence \cite{article_reference}, on constate que nos modèles TO COMPLETE.
-En effet dans la \hyperref[tab:results_physical]{Table 6}, on peut voir que les performances des KNN, Random Forest, SVM et Naive Bayes (NB) sont TO COMPLETE.
+En comparant les résultats obtenus avec ceux de l'article de référence \cite{article_reference}, on constate que nos modèles affichent des performances globales très compétitives en termes d'exactitude (accuracy), bien que le F1-score macro suggère une difficulté persistante à classifier parfaitement certaines classes minoritaires par rapport aux résultats de l'article.
+En effet dans la \hyperref[tab:results_physical]{Table 6}, on peut voir que les performances des KNN, Random Forest, SVM et Naive Bayes (NB) sont sensiblement supérieures aux nôtres en termes de F1-score. Cette différence peut provenir d'un prétraitement des données distinct, d'une gestion différente du déséquilibre des classes, ou de l'utilisation d'une moyenne pondérée (weighted) plutôt que macro pour le calcul du F1-score dans l'article de référence.
 
 \begin{table}[ht]
 	\centering
