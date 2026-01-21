@@ -1,5 +1,5 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{rapport}[2026/01/07 Classe de rapport simplifiée]
+\ProvidesClass{rapport}[2026/01/21 Classe de rapport simplifiée]
 
 \LoadClass[a4paper,12pt]{article}
 
@@ -11,13 +11,22 @@
 \RequirePackage{siunitx}
 \RequirePackage{float}
 \RequirePackage{graphicx}
-\RequirePackage[justification=centering]{caption}
-\RequirePackage{subcaption}
-\RequirePackage{nomencl}
+\RequirePackage[left=2.5cm,right=2.5cm,top=1.5cm,bottom=3.5cm]{geometry}
 \RequirePackage{fancyhdr}
 \RequirePackage[colorlinks=true,allcolors=blue,breaklinks]{hyperref}
 \RequirePackage{url}
-\RequirePackage[left=2.5cm,right=2.5cm,top=1.5cm,bottom=3.5cm]{geometry}
+\RequirePackage{nomencl}
+
+% -------------------- Caption fix pour TL2025 --------------------
+\RequirePackage[justification=centering]{caption}[2023/08/05]
+\RequirePackage{subcaption}[2023/07/28]
+
+% Neutralisation du message fatal dans tocbasic (TeX Live 2025)
+\makeatletter
+\@ifpackageloaded{tocbasic}{
+  \csdef{tocbasic@caption@disable}{}
+}{}
+\makeatother
 
 % -------------------- Métadonnées --------------------
 \newcommand{\cours}{}
