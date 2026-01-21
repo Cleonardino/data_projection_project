@@ -596,7 +596,7 @@ En effet dans la \hyperref[tab:results_physical]{Table 6}, on peut voir que les 
 \subsection{Analyse des erreurs}
 
 En s'attardant sur les erreurs commises par les différents modèles, on peut observer certaines corrélation entre celles-ci, comme le montre les \hyperref[fig:corrmat_network]{Figure 6} et \hyperref[fig:corrmat_physical]{Figure 7}.
-Par exemple — et sans surprise — le modèle MLP et le modèle MLP avec attention présentent une forte corrélation dans leurs erreurs.
+Par exemple — et sans surprise — les modèles avec des architectures similaires présentent une forte corrélation dans leurs erreurs.
 
 \begin{figure}[H]
 	\centering
@@ -612,6 +612,7 @@ Par exemple — et sans surprise — le modèle MLP et le modèle MLP avec atten
 	\label{fig:corrmat_physical}
 \end{figure}
 
+<<<<<<< HEAD
 Comme il y a très peu de faible corrélations, il est raisonnable de penser que certains échantillons sont systématiquement mal classés par tous les modèles.
 La \hyperref[tab:misclassified_samples_physical]{Table 6} liste les échantillons qui ont été mal classés par l'ensemble des modèles lors de nos différentes exécutions, ainsi que la prédiction majoritaire effectuée par les modèles pour ces échantillons.
 Heureusement, on constate que leur nombre est très faible — seulement 17 échantillons sur un total de X — donc il n'y a pas beaucoup d'entrées réellement problématiques.
@@ -621,6 +622,8 @@ Cela peut s'expliquer par le fait que les mesures sont effectuées toutes les se
 Il y a également des des échantillons mal classés appartenant à la classe \texttt{scan} qui est sous-représentée, ce qui peut expliquer les difficultés rencontrées par les modèles pour les classer correctement.
 De même, l'étiquiette \texttt{scan} est plusieurs fois prédite de manière erronée, ce qui montre bien que les modèles ont du mal à savoir à quoi correspond cette classe.
 
+=======
+>>>>>>> 723f7ce7c2996f6ab85fbd0fd74143c1a4ee7dec
 \newpage
 
 \printbibliography[heading=bibintoc, title={Références}]
