@@ -20,9 +20,11 @@ _rapport/*.bbl
 _rapport/*.bcf
 _rapport/*.blg
 _rapport/*.lof
+_rapport/*.lot
 _rapport/*.log
 _rapport/*.nlo
 _rapport/*.out
+_rapport/*.run.xml
 _rapport/*.toc
 
 .streamlit
