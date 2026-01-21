@@ -615,41 +615,6 @@ Cela peut s'expliquer par le fait que les mesures sont effectuées toutes les se
 Il y a également des des échantillons mal classés appartenant à la classe \texttt{scan} qui est sous-représentée, ce qui peut expliquer les difficultés rencontrées par les modèles pour les classer correctement.
 De même, l'étiquiette \texttt{scan} est plusieurs fois prédite de manière erronée, ce qui montre bien que les modèles ont du mal à savoir à quoi correspond cette classe.
 
-\begin{table}[H]
-	\centering
-	\begin{tabular}{c l c l}
-		\hline
-		\textbf{Entrée} & \textbf{Label réel} & \textbf{Nombre d'erreurs} & \textbf{Prédiction majoritaire} \\
-		\hline
-		36   & scan   & 10 & normal \\
-		768  & normal & 10 & physical fault \\
-		848  & normal & 10 & physical fault \\
-		927  & normal & 10 & MITM \\
-		1257 & normal & 10 & physical fault \\
-		1549 & scan   & 10 & normal \\
-		\hline
-	\end{tabular}
-	\caption{Échantillons physiques systématiquement mal classés lors des différentes exécutions}
-	\label{tab:misclassified_samples_physical}
-\end{table}
-
-% TO MODIFY
-\begin{table}[H]
-	\centering
-	\begin{tabular}{c l c l}
-		\hline
-		\textbf{Entrée} & \textbf{Label réel} & \textbf{Nombre d'erreurs} & \textbf{Prédiction majoritaire} \\
-		\hline
-		TO COMPLETE & TO COMPLETE & TO COMPLETE & TO COMPLETE \\
-		\hline
-	\end{tabular}
-	\caption{20 échantillons réseau systématiquement mal classés lors des différentes exécutions}
-	\label{tab:misclassified_network}
-\end{table}
-
-\section*{Conclusion}
-\addcontentsline{toc}{section}{Conclusion}
-
 \newpage
 
 \printbibliography[heading=bibintoc, title={Références}]
